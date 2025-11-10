@@ -1,0 +1,409 @@
+import axios, { AxiosInstance, AxiosError } from 'axios';
+import { API_BASE_URL, API_VERSION, AUTH_STORAGE_KEY } from './constants';
+import type { ApiResponse, Bot, Order, Analytics, BotAvailability, QueueStats, BotFriends, BotActivities, CatalogItem, CreateCatalogItemRequest, UpdateCatalogItemRequest, FlashSaleRequest, SyncCatalogResult } from '@/types/api';
+
+// Create axios instance
+const apiClient: AxiosInstance = axios.create({
+  baseURL: `${API_BASE_URL}${API_VERSION}`,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  timeout: 30000, // 30 seconds
+});
+
+// Request interceptor - Add API key to headers
+apiClient.interceptors.request.use(
+  (config) => {
+    // Get API key from localStorage
+    const apiKey = localStorage.getItem(AUTH_STORAGE_KEY);
+    if (apiKey) {
+      config.headers['X-API-Key'] = apiKey;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Response interceptor - Handle errors
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error: AxiosError) => {
+    // Handle 401 Unauthorized - Clear auth and redirect to login
+    if (error.response?.status === 401) {
+      localStorage.removeItem(AUTH_STORAGE_KEY);
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
+// Helper function to handle API responses
+const handleResponse = <T>(response: any): T => {
+  if (response.data.success) {
+    return response.data.data as T;
+  }
+  throw new Error(response.data.error || 'Unknown error');
+};
+
+// ============================================================================
+// API Functions
+// ============================================================================
+
+// ----- Authentication -----
+export const authApi = {
+  testConnection: async (apiKey: string): Promise<boolean> => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}${API_VERSION}/health`, {
+        headers: { 'X-API-Key': apiKey },
+      });
+      return response.status === 200;
+    } catch {
+      return false;
+    }
+  },
+};
+
+// ----- Bots -----
+export const botsApi = {
+  getAll: async (): Promise<Bot[]> => {
+    const response = await apiClient.get('/bots');
+    const data = handleResponse<{ bots: Bot[]; stats: any }>(response);
+    return data.bots;
+  },
+
+  getOne: async (id: string): Promise<Bot> => {
+    const response = await apiClient.get(`/bots/${id}`);
+    return handleResponse<Bot>(response);
+  },
+
+  getAvailability: async (): Promise<BotAvailability> => {
+    const response = await apiClient.get('/bots/availability');
+    return handleResponse<BotAvailability>(response);
+  },
+
+  start: async (id: string): Promise<void> => {
+    const response = await apiClient.post(`/bots/${id}/login`);
+    return handleResponse<void>(response);
+  },
+
+  stop: async (id: string): Promise<void> => {
+    const response = await apiClient.post(`/bots/${id}/logout`);
+    return handleResponse<void>(response);
+  },
+
+  restart: async (id: string): Promise<void> => {
+    const response = await apiClient.post(`/bots/${id}/restart`);
+    return handleResponse<void>(response);
+  },
+
+  create: async (data: {
+    name: string;
+    displayName: string;
+    deviceId: string;
+    accountId: string;
+    secret: string;
+    maxGiftsPerDay?: number;
+  }): Promise<Bot> => {
+    const response = await apiClient.post('/bots', data);
+    return handleResponse<Bot>(response);
+  },
+
+  delete: async (id: string): Promise<void> => {
+    const response = await apiClient.delete(`/bots/${id}`);
+    return handleResponse<void>(response);
+  },
+
+  getFriends: async (id: string): Promise<BotFriends> => {
+    const response = await apiClient.get(`/bots/${id}/friends`);
+    return handleResponse<BotFriends>(response);
+  },
+
+  getActivities: async (id: string, limit = 50, offset = 0): Promise<BotActivities> => {
+    const response = await apiClient.get(`/bots/${id}/activities?limit=${limit}&offset=${offset}`);
+    return handleResponse<BotActivities>(response);
+  },
+
+  syncFriends: async (id: string): Promise<{ totalInEpic: number; alreadyInDatabase: number; newFriendsAdded: number }> => {
+    const response = await apiClient.post(`/bots/${id}/sync-friends`);
+    return handleResponse<{ totalInEpic: number; alreadyInDatabase: number; newFriendsAdded: number }>(response);
+  },
+};
+
+// ----- Orders -----
+export const ordersApi = {
+  getAll: async (params?: {
+    status?: string;
+    priority?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<Order[]> => {
+    const response = await apiClient.get('/orders', { params });
+    const data = handleResponse<{ orders: Order[]; pagination: any }>(response);
+    return data.orders;
+  },
+
+  getOne: async (id: string): Promise<Order> => {
+    const response = await apiClient.get(`/orders/${id}`);
+    return handleResponse<Order>(response);
+  },
+
+  cancel: async (id: string): Promise<void> => {
+    const response = await apiClient.post(`/orders/${id}/cancel`);
+    return handleResponse<void>(response);
+  },
+
+  retry: async (id: string): Promise<void> => {
+    const response = await apiClient.post(`/orders/${id}/retry`);
+    return handleResponse<void>(response);
+  },
+
+  approve: async (id: string): Promise<void> => {
+    const response = await apiClient.post(`/orders/${id}/approve`);
+    return handleResponse<void>(response);
+  },
+
+  markVBucksLoaded: async (id: string): Promise<void> => {
+    const response = await apiClient.post(`/orders/${id}/vbucks-loaded`);
+    return handleResponse<void>(response);
+  },
+
+  markBotFixed: async (id: string): Promise<void> => {
+    const response = await apiClient.post(`/orders/${id}/bot-fixed`);
+    return handleResponse<void>(response);
+  },
+};
+
+// ----- Analytics -----
+export const analyticsApi = {
+  getMetrics: async (period: 'today' | 'week' | 'month' = 'today'): Promise<Analytics> => {
+    const response = await apiClient.get(`/analytics/metrics?period=${period}`);
+    return handleResponse<Analytics>(response);
+  },
+
+  getQueues: async (): Promise<QueueStats[]> => {
+    const response = await apiClient.get('/analytics/queues');
+    return handleResponse<QueueStats[]>(response);
+  },
+
+  getCheckoutAbandonment: async (params?: { period?: 'today' | 'week' | 'month' | 'all'; limit?: number }): Promise<any> => {
+    const queryParams = new URLSearchParams();
+    if (params?.period) queryParams.append('period', params.period);
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+
+    const response = await apiClient.get(`/analytics/checkout-abandonment?${queryParams.toString()}`);
+    return handleResponse<any>(response);
+  },
+};
+
+// ----- Catalog -----
+export const catalogApi = {
+  getAll: async (params?: {
+    type?: string;
+    isCustom?: boolean;
+    isActive?: boolean;
+    page?: number;
+    limit?: number;
+  }): Promise<{ items: CatalogItem[]; pagination: { page: number; limit: number; total: number; pages: number } }> => {
+    const response = await apiClient.get('/catalog/items', { params });
+    return handleResponse<{ items: CatalogItem[]; pagination: { page: number; limit: number; total: number; pages: number } }>(response);
+  },
+
+  getOne: async (id: string): Promise<CatalogItem> => {
+    const response = await apiClient.get(`/catalog/items/${id}`);
+    return handleResponse<CatalogItem>(response);
+  },
+
+  create: async (data: CreateCatalogItemRequest): Promise<CatalogItem> => {
+    const response = await apiClient.post('/catalog/items', data);
+    return handleResponse<CatalogItem>(response);
+  },
+
+  update: async (id: string, data: UpdateCatalogItemRequest): Promise<CatalogItem> => {
+    const response = await apiClient.patch(`/catalog/items/${id}`, data);
+    return handleResponse<CatalogItem>(response);
+  },
+
+  delete: async (id: string): Promise<void> => {
+    const response = await apiClient.delete(`/catalog/items/${id}`);
+    return handleResponse<void>(response);
+  },
+
+  syncFromAPI: async (): Promise<SyncCatalogResult> => {
+    const response = await apiClient.post('/catalog/update');
+    return handleResponse<SyncCatalogResult>(response);
+  },
+
+  createFlashSale: async (id: string, data: FlashSaleRequest): Promise<CatalogItem> => {
+    const response = await apiClient.post(`/catalog/items/${id}/flash-sale`, data);
+    return handleResponse<CatalogItem>(response);
+  },
+};
+
+// ----- Pricing -----
+export const pricingApi = {
+  getConfig: async (): Promise<any> => {
+    const response = await apiClient.get('/pricing/config');
+    return handleResponse<any>(response);
+  },
+
+  updateConfig: async (data: any): Promise<any> => {
+    const response = await apiClient.patch('/pricing/config', data);
+    return handleResponse<any>(response);
+  },
+};
+
+// ----- Config -----
+export type CheckoutMode = 'whatsapp' | 'wizard' | 'bot-wizard';
+
+export interface ConfigResponse {
+  key: string;
+  value: string;
+  description?: string;
+}
+
+export const configApi = {
+  getCheckoutMode: async (): Promise<CheckoutMode> => {
+    const response = await apiClient.get('/config/checkout-mode');
+    // El backend retorna { success: true, value: "wizard" } directamente, no dentro de data
+    if (response.data.success) {
+      return response.data.value as CheckoutMode;
+    }
+    throw new Error(response.data.error || 'Failed to get checkout mode');
+  },
+
+  setCheckoutMode: async (mode: CheckoutMode): Promise<void> => {
+    const response = await apiClient.put('/config/checkout-mode', { value: mode });
+    if (!response.data.success) {
+      throw new Error(response.data.error || 'Failed to set checkout mode');
+    }
+  },
+
+  getManualCheckoutEnabled: async (): Promise<boolean> => {
+    const response = await apiClient.get('/config/manual-checkout');
+    if (response.data.success) {
+      return response.data.enabled as boolean;
+    }
+    throw new Error(response.data.error || 'Failed to get manual checkout enabled');
+  },
+
+  setManualCheckoutEnabled: async (enabled: boolean): Promise<void> => {
+    const response = await apiClient.put('/config/manual-checkout', { enabled });
+    if (!response.data.success) {
+      throw new Error(response.data.error || 'Failed to set manual checkout enabled');
+    }
+  },
+};
+
+// ----- Payment Methods -----
+export interface PaymentMethod {
+  id: string;
+  slug: string;
+  name: string;
+  description?: string;
+  icon?: string;
+  isActive: boolean;
+  displayOrder: number;
+  instructions?: string;
+  accountInfo?: any;
+  metadata?: any;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const paymentMethodsApi = {
+  getAll: async (onlyActive?: boolean): Promise<PaymentMethod[]> => {
+    const query = onlyActive ? '?active=true' : '';
+    const response = await apiClient.get(`/payment-methods${query}`);
+    return handleResponse<PaymentMethod[]>(response);
+  },
+
+  getById: async (id: string): Promise<PaymentMethod> => {
+    const response = await apiClient.get(`/payment-methods/${id}`);
+    return handleResponse<PaymentMethod>(response);
+  },
+
+  getBySlug: async (slug: string): Promise<PaymentMethod> => {
+    const response = await apiClient.get(`/payment-methods/slug/${slug}`);
+    return handleResponse<PaymentMethod>(response);
+  },
+
+  create: async (data: Partial<PaymentMethod>): Promise<PaymentMethod> => {
+    const response = await apiClient.post('/payment-methods', data);
+    return handleResponse<PaymentMethod>(response);
+  },
+
+  update: async (id: string, data: Partial<PaymentMethod>): Promise<PaymentMethod> => {
+    const response = await apiClient.patch(`/payment-methods/${id}`, data);
+    return handleResponse<PaymentMethod>(response);
+  },
+
+  delete: async (id: string): Promise<void> => {
+    const response = await apiClient.delete(`/payment-methods/${id}`);
+    return handleResponse<void>(response);
+  },
+
+  toggleActive: async (id: string): Promise<PaymentMethod> => {
+    const response = await apiClient.patch(`/payment-methods/${id}/toggle`);
+    return handleResponse<PaymentMethod>(response);
+  },
+
+  reorder: async (items: { id: string; displayOrder: number }[]): Promise<void> => {
+    const response = await apiClient.post('/payment-methods/reorder', { items });
+    return handleResponse<void>(response);
+  },
+};
+
+// ----- Logs -----
+export interface BotError {
+  timestamp: string;
+  level: string;
+  botId?: string;
+  message: string;
+  orderId?: string;
+  itemId?: string;
+  itemName?: string;
+  error?: string;
+}
+
+export interface BotErrorsResponse {
+  errors: BotError[];
+  total: number;
+  botId: string;
+  date: string;
+}
+
+export const logsApi = {
+  getBotErrors: async (botId?: string, limit: number = 50): Promise<BotErrorsResponse> => {
+    const params = new URLSearchParams();
+    if (botId) params.append('botId', botId);
+    params.append('limit', limit.toString());
+
+    const response = await apiClient.get(`/logs/bot-errors?${params.toString()}`);
+    return handleResponse<BotErrorsResponse>(response);
+  },
+
+  getBotActivity: async (botId?: string, limit: number = 100): Promise<any> => {
+    const params = new URLSearchParams();
+    if (botId) params.append('botId', botId);
+    params.append('limit', limit.toString());
+
+    const response = await apiClient.get(`/logs/bot-activity?${params.toString()}`);
+    return handleResponse<any>(response);
+  },
+
+  getApplicationLogs: async (level?: string, limit: number = 100): Promise<any> => {
+    const params = new URLSearchParams();
+    if (level) params.append('level', level);
+    params.append('limit', limit.toString());
+
+    const response = await apiClient.get(`/logs/application?${params.toString()}`);
+    return handleResponse<any>(response);
+  },
+};
+
+// Export default api client for custom requests
+export default apiClient;
