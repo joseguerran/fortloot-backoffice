@@ -7,7 +7,6 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install ALL dependencies (including dev) for building
-ENV NODE_ENV=development
 RUN npm install --include=dev --loglevel=error
 
 # Copy source code
@@ -15,6 +14,7 @@ COPY . .
 
 # Build Next.js application (standalone)
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=production
 RUN npm run build
 
 # Production stage
