@@ -6,6 +6,7 @@ import { paymentMethodsApi, PaymentMethod } from '@/lib/api';
 import { Header } from '@/components/dashboard/header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -27,6 +28,7 @@ export default function PaymentMethodsPage() {
     icon: '',
     displayOrder: 0,
     isActive: true,
+    instructions: '',
   });
 
   // Fetch payment methods
@@ -97,6 +99,7 @@ export default function PaymentMethodsPage() {
       icon: '',
       displayOrder: 0,
       isActive: true,
+      instructions: '',
     });
   };
 
@@ -114,6 +117,7 @@ export default function PaymentMethodsPage() {
       icon: method.icon || '',
       displayOrder: method.displayOrder,
       isActive: method.isActive,
+      instructions: method.instructions || '',
     });
     setIsEditDialogOpen(true);
   };
@@ -201,6 +205,14 @@ export default function PaymentMethodsPage() {
                       <p className="text-sm text-muted-foreground">
                         {method.description}
                       </p>
+                    )}
+                    {method.instructions && (
+                      <div className="border-l-2 border-primary pl-3">
+                        <p className="text-xs text-muted-foreground mb-1">Instrucciones:</p>
+                        <p className="text-sm text-foreground whitespace-pre-line">
+                          {method.instructions}
+                        </p>
+                      </div>
                     )}
                     {method.icon && (
                       <div className="flex items-center gap-2">
@@ -294,6 +306,19 @@ export default function PaymentMethodsPage() {
                   />
                 </div>
                 <div className="grid gap-2">
+                  <Label htmlFor="instructions">Instrucciones de Pago</Label>
+                  <Textarea
+                    id="instructions"
+                    value={formData.instructions}
+                    onChange={(e) => setFormData({ ...formData, instructions: e.target.value })}
+                    placeholder="Ej: Pago mediante binance en USDT al binance id: 1037790136"
+                    rows={3}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Instrucciones que verá el cliente al momento de pagar
+                  </p>
+                </div>
+                <div className="grid gap-2">
                   <Label htmlFor="icon">Ícono</Label>
                   <Input
                     id="icon"
@@ -374,6 +399,19 @@ export default function PaymentMethodsPage() {
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-instructions">Instrucciones de Pago</Label>
+                  <Textarea
+                    id="edit-instructions"
+                    value={formData.instructions}
+                    onChange={(e) => setFormData({ ...formData, instructions: e.target.value })}
+                    placeholder="Ej: Pago mediante binance en USDT al binance id: 1037790136"
+                    rows={3}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Instrucciones que verá el cliente al momento de pagar
+                  </p>
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="edit-icon">Ícono</Label>
