@@ -296,6 +296,21 @@ export const configApi = {
       throw new Error(response.data.error || 'Failed to set manual checkout enabled');
     }
   },
+
+  getWhatsAppEnabled: async (): Promise<boolean> => {
+    const response = await apiClient.get('/config/whatsapp-enabled');
+    if (response.data.success) {
+      return response.data.enabled as boolean;
+    }
+    throw new Error(response.data.error || 'Failed to get WhatsApp enabled');
+  },
+
+  setWhatsAppEnabled: async (enabled: boolean): Promise<void> => {
+    const response = await apiClient.put('/config/whatsapp-enabled', { enabled });
+    if (!response.data.success) {
+      throw new Error(response.data.error || 'Failed to set WhatsApp enabled');
+    }
+  },
 };
 
 // ----- Payment Methods -----

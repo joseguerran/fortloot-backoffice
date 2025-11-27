@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
-import { Settings, ShoppingCart, MessageSquare, Bot, Check, Wrench } from 'lucide-react';
+import { Settings, ShoppingCart, MessageSquare, Bot, Check, Wrench, Phone } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function SettingsPage() {
@@ -24,6 +24,12 @@ export default function SettingsPage() {
   const { data: manualCheckoutEnabled, isLoading: isLoadingManual } = useQuery<boolean>({
     queryKey: ['manual-checkout-enabled'],
     queryFn: () => configApi.getManualCheckoutEnabled(),
+  });
+
+  // Fetch WhatsApp notifications enabled
+  const { data: whatsappEnabled, isLoading: isLoadingWhatsApp } = useQuery<boolean>({
+    queryKey: ['whatsapp-enabled'],
+    queryFn: () => configApi.getWhatsAppEnabled(),
   });
 
   // Update checkout mode mutation
@@ -44,6 +50,18 @@ export default function SettingsPage() {
     onSuccess: () => {
       toast.success('Configuración de checkout manual actualizada');
       queryClient.invalidateQueries({ queryKey: ['manual-checkout-enabled'] });
+    },
+    onError: (error: any) => {
+      toast.error(`Error al actualizar: ${error.message}`);
+    },
+  });
+
+  // Update WhatsApp notifications mutation
+  const updateWhatsAppMutation = useMutation({
+    mutationFn: (enabled: boolean) => configApi.setWhatsAppEnabled(enabled),
+    onSuccess: () => {
+      toast.success('Configuración de WhatsApp actualizada');
+      queryClient.invalidateQueries({ queryKey: ['whatsapp-enabled'] });
     },
     onError: (error: any) => {
       toast.error(`Error al actualizar: ${error.message}`);
@@ -92,7 +110,7 @@ export default function SettingsPage() {
     <>
       <Header title="Configuración del Sistema" />
       <div className="flex flex-1 flex-col gap-4 p-4">
-        {(isLoading || isLoadingManual) ? (
+        {(isLoading || isLoadingManual || isLoadingWhatsApp) ? (
           <div className="space-y-4">
             <Skeleton className="h-48 w-full" />
             <Skeleton className="h-32 w-full" />
@@ -139,6 +157,51 @@ export default function SettingsPage() {
                   <p className="text-xs text-muted-foreground mt-2">
                     Esta configuración permite preparar el sistema para una futura automatización
                     completa mediante bots, mientras tanto se usa proceso manual vía WhatsApp.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* WhatsApp Notifications Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Phone className="w-5 h-5" />
+                  Notificaciones WhatsApp (Admin)
+                </CardTitle>
+                <CardDescription>
+                  Recibe notificaciones por WhatsApp cuando se crean nuevas órdenes o los clientes suben
+                  comprobantes de pago. Requiere WAHA configurado.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex-1">
+                    <h3 className="font-medium mb-1">Activar Notificaciones WhatsApp</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Cuando está activo, recibirás alertas por WhatsApp en los siguientes eventos:
+                      nueva orden creada y comprobante de pago subido.
+                    </p>
+                  </div>
+                  <Switch
+                    checked={whatsappEnabled || false}
+                    onCheckedChange={(checked) => updateWhatsAppMutation.mutate(checked)}
+                    disabled={updateWhatsAppMutation.isPending}
+                  />
+                </div>
+
+                <div className="p-4 bg-muted/50 rounded-lg border">
+                  <p className="text-sm text-muted-foreground">
+                    <strong>Estado:</strong>{' '}
+                    {whatsappEnabled ? (
+                      <span className="text-green-600 font-semibold">Activo</span>
+                    ) : (
+                      <span className="text-gray-600 font-semibold">Desactivado</span>
+                    )}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Asegúrate de tener configuradas las variables <code className="bg-muted px-1 rounded">WAHA_API_URL</code> y{' '}
+                    <code className="bg-muted px-1 rounded">ADMIN_WHATSAPP</code> en el backend.
                   </p>
                 </div>
               </CardContent>
