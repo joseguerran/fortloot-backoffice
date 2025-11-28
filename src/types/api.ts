@@ -28,31 +28,68 @@ export interface Bot {
   updatedAt: string;
 }
 
-export interface Order {
+export interface CustomerInfo {
   id: string;
-  customerEpicId: string;
-  customerName: string;
-  customerEmail?: string;
-  productId: string;
+  displayName: string;
+  epicAccountId?: string;
+  email?: string;
+  phoneNumber?: string;
+  tier: 'REGULAR' | 'VIP' | 'PREMIUM';
+}
+
+export interface OrderItem {
+  id: string;
+  orderId: string;
+  catalogItemId?: string;
   productName: string;
-  productType: 'VBUCKS' | 'SKIN' | 'EMOTE' | 'PICKAXE' | 'GLIDER' | 'BACKPACK' | 'WRAP' | 'BATTLE_PASS' | 'BUNDLE' | 'OTHER';
+  productType: ProductType;
   itemId: string;
   quantity: number;
-  price: number;
-  currency: string;
-  status: 'PENDING' | 'WAITING_FRIENDSHIP' | 'WAITING_PERIOD' | 'QUEUED' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'CANCELLED' | 'REFUNDED';
+  basePrice: number;
+  profitAmount: number;
+  discountAmount: number;
+  finalPrice: number;
+}
+
+export interface Order {
+  id: string;
+  orderNumber: string;
+  customerId: string;
+  customer?: CustomerInfo;
+  status: 'PENDING' | 'PENDING_PAYMENT' | 'PAYMENT_UPLOADED' | 'PAYMENT_VERIFIED' | 'PAYMENT_REJECTED' | 'WAITING_FRIENDSHIP' | 'WAITING_PERIOD' | 'QUEUED' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'CANCELLED' | 'REFUNDED' | 'EXPIRED' | 'ABANDONED' | 'WAITING_VBUCKS' | 'WAITING_BOT_FIX' | 'WAITING_BOT';
   priority: 'LOW' | 'NORMAL' | 'HIGH' | 'VIP';
+  basePrice: number;
+  discountAmount: number;
+  profitAmount: number;
+  finalPrice: number;
+  currency: string;
   assignedBotId?: string;
   assignedAt?: string;
   attempts: number;
   maxAttempts: number;
   lastAttemptAt?: string;
+  reassignmentCount?: number;
   estimatedDelivery?: string;
   completedAt?: string;
   failedAt?: string;
+  expiresAt?: string;
+  checkoutStartedAt?: string;
+  paymentMethod?: string;
+  paymentProofUrl?: string;
+  paymentUploadedAt?: string;
+  paymentVerifiedAt?: string;
+  paymentVerifiedBy?: string;
+  paymentRejectedReason?: string;
+  paymentNotes?: string;
+  transactionId?: string;
   failureReason?: string;
+  progressSteps?: any;
+  currentStep?: string;
+  hasManualItems?: boolean;
+  metadata?: any;
   createdAt: string;
   updatedAt: string;
+  orderItems?: OrderItem[];
 }
 
 export interface Analytics {

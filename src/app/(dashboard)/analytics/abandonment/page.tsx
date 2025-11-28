@@ -134,11 +134,11 @@ export default function CheckoutAbandonmentPage() {
                             <td className="p-2 text-sm font-mono">{order.orderNumber}</td>
                             <td className="p-2">
                               <div className="text-sm">
-                                <div className="font-medium">{order.customerName}</div>
+                                <div className="font-medium">{order.customer?.displayName || order.customerName}</div>
                                 {order.hasContactInfo && (
                                   <div className="text-xs text-muted-foreground flex items-center gap-1">
                                     <Mail className="w-3 h-3" />
-                                    {order.email}
+                                    {order.customer?.email || order.email}
                                   </div>
                                 )}
                               </div>

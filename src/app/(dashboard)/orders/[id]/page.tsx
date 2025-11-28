@@ -368,16 +368,22 @@ export default function OrderDetailPage() {
                 <div className="space-y-2">
                   <div>
                     <p className="text-sm text-muted-foreground">Name</p>
-                    <p className="font-medium">{order.customerName}</p>
+                    <p className="font-medium">{order.customer?.displayName || 'N/A'}</p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Epic ID</p>
-                    <p className="font-mono text-sm">{order.customerEpicId}</p>
+                    <p className="font-mono text-sm">{order.customer?.epicAccountId || 'N/A'}</p>
                   </div>
-                  {order.customerEmail && (
+                  {order.customer?.email && (
                     <div>
                       <p className="text-sm text-muted-foreground">Email</p>
-                      <p className="text-sm">{order.customerEmail}</p>
+                      <p className="text-sm">{order.customer.email}</p>
+                    </div>
+                  )}
+                  {order.customer?.phoneNumber && (
+                    <div>
+                      <p className="text-sm text-muted-foreground">Teléfono</p>
+                      <p className="text-sm">{order.customer.phoneNumber}</p>
                     </div>
                   )}
                 </div>
@@ -392,15 +398,15 @@ export default function OrderDetailPage() {
                 <div className="space-y-2">
                   <div>
                     <p className="text-sm text-muted-foreground">Product</p>
-                    <p className="font-medium">{order.productName}</p>
+                    <p className="font-medium">{order.orderItems?.[0]?.productName || 'N/A'}</p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Type</p>
-                    <Badge variant="outline">{order.productType}</Badge>
+                    <Badge variant="outline">{order.orderItems?.[0]?.productType || 'N/A'}</Badge>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Quantity</p>
-                    <p className="font-medium">{order.quantity}</p>
+                    <p className="font-medium">{order.orderItems?.[0]?.quantity || 1}</p>
                   </div>
                 </div>
               </Card>
@@ -414,17 +420,17 @@ export default function OrderDetailPage() {
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <p className="text-sm text-muted-foreground">Base Price</p>
-                    <p className="font-medium">${order.basePrice.toFixed(2)}</p>
+                    <p className="font-medium">${order.basePrice?.toFixed(2) || '0.00'}</p>
                   </div>
-                  {order.discountAmount > 0 && (
+                  {(order.discountAmount ?? 0) > 0 && (
                     <div className="flex justify-between text-green-600">
                       <p className="text-sm">Discount</p>
-                      <p className="font-medium">-${order.discountAmount.toFixed(2)}</p>
+                      <p className="font-medium">-${order.discountAmount?.toFixed(2) || '0.00'}</p>
                     </div>
                   )}
                   <div className="flex justify-between pt-2 border-t">
                     <p className="font-semibold">Total</p>
-                    <p className="font-semibold text-lg">${order.price.toFixed(2)} {order.currency}</p>
+                    <p className="font-semibold text-lg">${order.finalPrice?.toFixed(2) || '0.00'} {order.currency}</p>
                   </div>
                   <div className="flex justify-between items-center pt-2">
                     <p className="text-sm text-muted-foreground">Priority</p>

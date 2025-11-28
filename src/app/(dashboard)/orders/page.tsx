@@ -191,14 +191,14 @@ export default function OrdersPage() {
                     onClick={() => router.push(`/orders/${order.id}`)}
                   >
                     <TableCell>
-                      <div className="font-medium">{order.customerName}</div>
+                      <div className="font-medium">{order.customer?.displayName || 'N/A'}</div>
                       <div className="text-xs text-muted-foreground truncate max-w-[200px]">
-                        {order.customerEpicId}
+                        {order.customer?.epicAccountId || 'N/A'}
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="font-medium">{order.productName}</div>
-                      <div className="text-xs text-muted-foreground">{order.productType}</div>
+                      <div className="font-medium">{order.orderItems?.[0]?.productName || 'N/A'}</div>
+                      <div className="text-xs text-muted-foreground">{order.orderItems?.[0]?.productType || 'N/A'}</div>
                     </TableCell>
                     <TableCell>
                       <Badge variant={STATUS_BADGE_VARIANT[order.status]}>
@@ -211,7 +211,7 @@ export default function OrdersPage() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      ${order.price.toFixed(2)} {order.currency}
+                      ${order.finalPrice?.toFixed(2) || '0.00'} {order.currency}
                     </TableCell>
                     <TableCell className="text-muted-foreground text-sm">
                       {formatDistanceToNow(new Date(order.createdAt), { addSuffix: true })}
