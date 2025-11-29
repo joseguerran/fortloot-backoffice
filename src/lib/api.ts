@@ -372,6 +372,67 @@ export const paymentMethodsApi = {
   },
 };
 
+// ----- Customers -----
+export interface Customer {
+  id: string;
+  epicAccountId: string | null;
+  displayName: string;
+  email: string | null;
+  phoneNumber: string | null;
+  contactPreference: 'EMAIL' | 'WHATSAPP';
+  tier: 'REGULAR' | 'VIP' | 'PREMIUM';
+  isBlacklisted: boolean;
+  blacklistReason: string | null;
+  totalOrders: number;
+  totalSpent: number;
+  lifetimeValue: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CustomersListResponse {
+  customers: Customer[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
+}
+
+export const customersApi = {
+  getAll: async (params?: {
+    page?: number;
+    limit?: number;
+    tier?: string;
+    search?: string;
+    isBlacklisted?: boolean;
+  }): Promise<CustomersListResponse> => {
+    const response = await apiClient.get('/customers', { params });
+    return handleResponse<CustomersListResponse>(response);
+  },
+
+  changeTier: async (id: string, tier: 'REGULAR' | 'VIP' | 'PREMIUM'): Promise<Customer> => {
+    const response = await apiClient.patch(`/customers/${id}/tier`, { tier });
+    return handleResponse<Customer>(response);
+  },
+
+  addToBlacklist: async (id: string, reason: string): Promise<void> => {
+    const response = await apiClient.post(`/customers/${id}/blacklist`, { reason });
+    return handleResponse<void>(response);
+  },
+
+  removeFromBlacklist: async (id: string): Promise<void> => {
+    const response = await apiClient.delete(`/customers/${id}/blacklist`);
+    return handleResponse<void>(response);
+  },
+
+  getStats: async (epicId: string): Promise<any> => {
+    const response = await apiClient.get(`/customers/${epicId}/stats`);
+    return handleResponse<any>(response);
+  },
+};
+
 // ----- Logs -----
 export interface BotError {
   timestamp: string;

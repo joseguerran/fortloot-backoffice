@@ -1,6 +1,6 @@
 'use client';
 
-import { Bot, LayoutDashboard, Package, BarChart3, Settings, LogOut, ShoppingBag, DollarSign, CreditCard } from 'lucide-react';
+import { Bot, LayoutDashboard, Package, BarChart3, Settings, LogOut, ShoppingBag, DollarSign, CreditCard, Users } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -32,6 +32,11 @@ const navItems = [
     title: 'Orders',
     href: '/orders',
     icon: Package,
+  },
+  {
+    title: 'Customers',
+    href: '/customers',
+    icon: Users,
   },
   {
     title: 'Catalog',
