@@ -1,6 +1,6 @@
 'use client';
 
-import { Bot, LayoutDashboard, Package, BarChart3, Settings, LogOut, ShoppingBag, DollarSign, CreditCard, Users } from 'lucide-react';
+import { Bot, LayoutDashboard, Package, BarChart3, Settings, LogOut, ShoppingBag, DollarSign, CreditCard, Users, Megaphone } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -57,6 +57,11 @@ const navItems = [
     title: 'Analytics',
     href: '/analytics',
     icon: BarChart3,
+  },
+  {
+    title: 'Anuncios',
+    href: '/announcements',
+    icon: Megaphone,
   },
 ];
 

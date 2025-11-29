@@ -433,6 +433,90 @@ export const customersApi = {
   },
 };
 
+// ----- Announcements -----
+export interface Announcement {
+  id: string;
+  type: 'MAINTENANCE' | 'PROMOTION';
+  title: string;
+  message: string;
+  imageUrl: string | null;
+  productId: string | null;
+  product?: {
+    id: string;
+    name: string;
+    image: string;
+    type: string;
+  } | null;
+  linkUrl: string | null;
+  linkText: string | null;
+  isActive: boolean;
+  priority: number;
+  startsAt: string | null;
+  endsAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateAnnouncementRequest {
+  type: 'MAINTENANCE' | 'PROMOTION';
+  title: string;
+  message: string;
+  imageUrl?: string;
+  productId?: string;
+  linkUrl?: string;
+  linkText?: string;
+  isActive?: boolean;
+  priority?: number;
+  startsAt?: string;
+  endsAt?: string;
+}
+
+export interface UpdateAnnouncementRequest {
+  type?: 'MAINTENANCE' | 'PROMOTION';
+  title?: string;
+  message?: string;
+  imageUrl?: string | null;
+  productId?: string | null;
+  linkUrl?: string | null;
+  linkText?: string | null;
+  isActive?: boolean;
+  priority?: number;
+  startsAt?: string | null;
+  endsAt?: string | null;
+}
+
+export const announcementsApi = {
+  getAll: async (params?: { type?: string; isActive?: boolean }): Promise<Announcement[]> => {
+    const response = await apiClient.get('/announcements', { params });
+    return handleResponse<Announcement[]>(response);
+  },
+
+  getOne: async (id: string): Promise<Announcement> => {
+    const response = await apiClient.get(`/announcements/${id}`);
+    return handleResponse<Announcement>(response);
+  },
+
+  create: async (data: CreateAnnouncementRequest): Promise<Announcement> => {
+    const response = await apiClient.post('/announcements', data);
+    return handleResponse<Announcement>(response);
+  },
+
+  update: async (id: string, data: UpdateAnnouncementRequest): Promise<Announcement> => {
+    const response = await apiClient.patch(`/announcements/${id}`, data);
+    return handleResponse<Announcement>(response);
+  },
+
+  toggle: async (id: string): Promise<Announcement> => {
+    const response = await apiClient.post(`/announcements/${id}/toggle`);
+    return handleResponse<Announcement>(response);
+  },
+
+  delete: async (id: string): Promise<void> => {
+    const response = await apiClient.delete(`/announcements/${id}`);
+    return handleResponse<void>(response);
+  },
+};
+
 // ----- Logs -----
 export interface BotError {
   timestamp: string;
