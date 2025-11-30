@@ -19,10 +19,21 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { ArrowLeft, XCircle, RotateCw, User, Package, DollarSign, Calendar, AlertCircle, CheckCircle, Clock, ChevronDown, ChevronUp, Receipt, FileText } from 'lucide-react';
+import { ArrowLeft, XCircle, RotateCw, User, Package, DollarSign, Calendar, AlertCircle, CheckCircle, Clock, ChevronDown, ChevronUp, Receipt, FileText, Bitcoin, ExternalLink } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
 import { toast } from 'sonner';
 import { POLLING_INTERVALS } from '@/lib/constants';
+
+const CRYPTO_STATUS_CONFIG: Record<string, { label: string; color: string; badgeVariant: string }> = {
+  PENDING: { label: 'Esperando Pago', color: 'text-yellow-500', badgeVariant: 'secondary' },
+  CONFIRMING: { label: 'Confirmando', color: 'text-blue-500', badgeVariant: 'default' },
+  PAID: { label: 'Pagado', color: 'text-green-500', badgeVariant: 'default' },
+  PAID_OVER: { label: 'Pagado (exceso)', color: 'text-green-500', badgeVariant: 'default' },
+  WRONG_AMOUNT: { label: 'Monto Incorrecto', color: 'text-red-500', badgeVariant: 'destructive' },
+  EXPIRED: { label: 'Expirado', color: 'text-gray-500', badgeVariant: 'secondary' },
+  CANCELLED: { label: 'Cancelado', color: 'text-gray-500', badgeVariant: 'secondary' },
+  FAILED: { label: 'Fallido', color: 'text-red-500', badgeVariant: 'destructive' },
+};
 
 const STATUS_BADGE_VARIANT: Record<string, any> = {
   PENDING: 'secondary',
@@ -574,6 +585,100 @@ export default function OrderDetailPage() {
                       </Button>
                     </div>
                   </div>
+                </div>
+              </Card>
+            )}
+
+            {/* Crypto Payment Info (if CRYPTO payment) */}
+            {order.paymentMethod === 'CRYPTO' && (order as any).cryptoPayment && (
+              <Card className="p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Bitcoin className="h-5 w-5 text-green-500" />
+                  <h3 className="text-lg font-semibold">Pago con Crypto</h3>
+                </div>
+                <div className="space-y-4">
+                  {/* Crypto Status Badge */}
+                  {(() => {
+                    const cryptoPayment = (order as any).cryptoPayment;
+                    const cryptoConfig = CRYPTO_STATUS_CONFIG[cryptoPayment.status] || CRYPTO_STATUS_CONFIG.PENDING;
+                    return (
+                      <div className="flex items-center gap-4">
+                        <Badge variant={cryptoConfig.badgeVariant as any} className="text-sm">
+                          {cryptoConfig.label}
+                        </Badge>
+                        {cryptoPayment.cryptomusInvoiceId && (
+                          <span className="text-xs text-muted-foreground font-mono">
+                            ID: {cryptoPayment.cryptomusInvoiceId}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })()}
+
+                  {/* Payment Details Grid */}
+                  <div className="grid gap-4 md:grid-cols-3 grid-cols-1">
+                    {(order as any).cryptoPayment.cryptoCurrency && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">Moneda</p>
+                        <p className="font-medium">{(order as any).cryptoPayment.cryptoCurrency}</p>
+                      </div>
+                    )}
+                    {(order as any).cryptoPayment.network && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">Red</p>
+                        <p className="font-medium">{(order as any).cryptoPayment.network}</p>
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-sm text-muted-foreground">Monto</p>
+                      <p className="font-medium">${(order as any).cryptoPayment.amount?.toFixed(2) || '0.00'} USD</p>
+                    </div>
+                    {(order as any).cryptoPayment.paidAmount !== null && (order as any).cryptoPayment.paidAmount !== undefined && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">Monto Pagado</p>
+                        <p className="font-medium text-green-600">${(order as any).cryptoPayment.paidAmount?.toFixed(2) || '0.00'} USD</p>
+                      </div>
+                    )}
+                    {(order as any).cryptoPayment.expiresAt && (order as any).cryptoPayment.status === 'PENDING' && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">Expira</p>
+                        <p className="font-medium text-yellow-600">
+                          {format(new Date((order as any).cryptoPayment.expiresAt), 'PPpp')}
+                        </p>
+                      </div>
+                    )}
+                    {(order as any).cryptoPayment.paidAt && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">Fecha de Pago</p>
+                        <p className="font-medium text-green-600">
+                          {format(new Date((order as any).cryptoPayment.paidAt), 'PPpp')}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Transaction Hash */}
+                  {(order as any).cryptoPayment.txHash && (
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Hash de Transaccion</p>
+                      <p className="font-mono text-xs p-2 bg-muted rounded break-all">
+                        {(order as any).cryptoPayment.txHash}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Payment URL Button */}
+                  {(order as any).cryptoPayment.paymentUrl && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.open((order as any).cryptoPayment.paymentUrl, '_blank')}
+                      className="gap-2"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      Ver en Cryptomus
+                    </Button>
+                  )}
                 </div>
               </Card>
             )}
