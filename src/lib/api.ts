@@ -437,8 +437,8 @@ export const customersApi = {
 export interface Announcement {
   id: string;
   type: 'MAINTENANCE' | 'PROMOTION';
-  title: string;
-  message: string;
+  title: string | null;
+  message: string | null;
   imageUrl: string | null;
   productId: string | null;
   product?: {
@@ -514,6 +514,17 @@ export const announcementsApi = {
   delete: async (id: string): Promise<void> => {
     const response = await apiClient.delete(`/announcements/${id}`);
     return handleResponse<void>(response);
+  },
+
+  uploadImage: async (file: File): Promise<{ url: string; filename: string }> => {
+    const formData = new FormData();
+    formData.append('image', file);
+    const response = await apiClient.post('/announcements/upload-image', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return handleResponse<{ url: string; filename: string }>(response);
   },
 };
 

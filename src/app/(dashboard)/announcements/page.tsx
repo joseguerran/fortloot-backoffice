@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { announcementsApi, Announcement, CreateAnnouncementRequest, UpdateAnnouncementRequest, catalogApi } from '@/lib/api';
 import { Header } from '@/components/dashboard/header';
@@ -55,8 +55,13 @@ import {
   Calendar,
   Link as LinkIcon,
   Image as ImageIcon,
+  Upload,
+  X,
+  Loader2,
+  Copy,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import Image from 'next/image';
 
 const TYPE_CONFIG = {
   MAINTENANCE: {
@@ -117,6 +122,8 @@ export default function AnnouncementsPage() {
   const [formData, setFormData] = useState<FormData>(emptyFormData);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingAnnouncement, setDeletingAnnouncement] = useState<Announcement | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const queryClient = useQueryClient();
 
@@ -197,8 +204,8 @@ export default function AnnouncementsPage() {
     setEditingId(announcement.id);
     setFormData({
       type: announcement.type,
-      title: announcement.title,
-      message: announcement.message,
+      title: announcement.title || '',
+      message: announcement.message || '',
       imageUrl: announcement.imageUrl || '',
       productId: announcement.productId || '',
       linkUrl: announcement.linkUrl || '',
@@ -211,6 +218,25 @@ export default function AnnouncementsPage() {
     setDialogOpen(true);
   };
 
+  const handleClone = (announcement: Announcement) => {
+    setEditingId(null); // No ID means create new
+    setFormData({
+      type: announcement.type,
+      title: announcement.title ? `${announcement.title} (copia)` : '',
+      message: announcement.message || '',
+      imageUrl: announcement.imageUrl || '',
+      productId: announcement.productId || '',
+      linkUrl: announcement.linkUrl || '',
+      linkText: announcement.linkText || '',
+      isActive: false, // Start as inactive
+      priority: announcement.priority,
+      startsAt: '', // Clear dates for the clone
+      endsAt: '',
+    });
+    setDialogOpen(true);
+    toast.info('Clonando anuncio - modifica y guarda para crear una copia');
+  };
+
   const handleCloseDialog = () => {
     setDialogOpen(false);
     setEditingId(null);
@@ -218,26 +244,25 @@ export default function AnnouncementsPage() {
   };
 
   const handleSubmit = () => {
-    if (!formData.title.trim() || !formData.message.trim()) {
-      toast.error('Titulo y mensaje son requeridos');
-      return;
-    }
+    // When editing, empty strings should become null to clear the field
+    // When creating, empty strings should become undefined to use defaults
+    const isEditing = !!editingId;
 
     const payload: CreateAnnouncementRequest | UpdateAnnouncementRequest = {
       type: formData.type,
-      title: formData.title.trim(),
-      message: formData.message.trim(),
-      imageUrl: formData.imageUrl.trim() || undefined,
-      productId: formData.productId && formData.productId !== 'none' ? formData.productId : undefined,
-      linkUrl: formData.linkUrl.trim() || undefined,
-      linkText: formData.linkText.trim() || undefined,
+      title: formData.title.trim() || (isEditing ? null : undefined),
+      message: formData.message.trim() || (isEditing ? null : undefined),
+      imageUrl: formData.imageUrl.trim() || (isEditing ? null : undefined),
+      productId: formData.productId && formData.productId !== 'none' ? formData.productId : (isEditing ? null : undefined),
+      linkUrl: formData.linkUrl.trim() || (isEditing ? null : undefined),
+      linkText: formData.linkText.trim() || (isEditing ? null : undefined),
       isActive: formData.isActive,
       priority: formData.priority,
-      startsAt: formData.startsAt ? new Date(formData.startsAt).toISOString() : undefined,
-      endsAt: formData.endsAt ? new Date(formData.endsAt).toISOString() : undefined,
+      startsAt: formData.startsAt ? new Date(formData.startsAt).toISOString() : (isEditing ? null : undefined),
+      endsAt: formData.endsAt ? new Date(formData.endsAt).toISOString() : (isEditing ? null : undefined),
     };
 
-    if (editingId) {
+    if (isEditing) {
       updateMutation.mutate({ id: editingId, data: payload });
     } else {
       createMutation.mutate(payload as CreateAnnouncementRequest);
@@ -254,6 +279,43 @@ export default function AnnouncementsPage() {
       deleteMutation.mutate(deletingAnnouncement.id);
     }
   };
+
+  // Image upload handler
+  const handleImageUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Solo se permiten imagenes');
+      return;
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('La imagen no puede superar 5MB');
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const result = await announcementsApi.uploadImage(file);
+      setFormData((prev) => ({ ...prev, imageUrl: result.url }));
+      toast.success('Imagen subida correctamente');
+    } catch (error: any) {
+      toast.error(`Error al subir imagen: ${error.response?.data?.error || error.message}`);
+    } finally {
+      setIsUploading(false);
+      // Reset the input so the same file can be selected again
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  }, []);
+
+  const handleRemoveImage = useCallback(() => {
+    setFormData((prev) => ({ ...prev, imageUrl: '' }));
+  }, []);
 
   // Stats
   const stats = {
@@ -411,6 +473,10 @@ export default function AnnouncementsPage() {
                               <Pencil className="h-4 w-4 mr-2" />
                               Editar
                             </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleClone(announcement)}>
+                              <Copy className="h-4 w-4 mr-2" />
+                              Clonar
+                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => toggleMutation.mutate(announcement.id)}>
                               <Power className="h-4 w-4 mr-2" />
                               {announcement.isActive ? 'Desactivar' : 'Activar'}
@@ -494,7 +560,7 @@ export default function AnnouncementsPage() {
 
             {/* Title */}
             <div className="space-y-2">
-              <Label htmlFor="title">Titulo *</Label>
+              <Label htmlFor="title">Titulo (opcional)</Label>
               <Input
                 id="title"
                 placeholder="Ej: Mantenimiento programado"
@@ -505,7 +571,7 @@ export default function AnnouncementsPage() {
 
             {/* Message */}
             <div className="space-y-2">
-              <Label htmlFor="message">Mensaje *</Label>
+              <Label htmlFor="message">Mensaje (opcional)</Label>
               <Textarea
                 id="message"
                 placeholder="Ej: Estamos realizando mejoras en nuestro sistema..."
@@ -518,20 +584,80 @@ export default function AnnouncementsPage() {
             {/* Promotion-only fields */}
             {formData.type === 'PROMOTION' && (
               <>
-                {/* Image URL */}
+                {/* Image Upload */}
                 <div className="space-y-2">
-                  <Label htmlFor="imageUrl">
+                  <Label>
                     <div className="flex items-center gap-1">
                       <ImageIcon className="h-4 w-4" />
-                      URL de imagen (opcional)
+                      Imagen del banner (opcional)
                     </div>
                   </Label>
-                  <Input
-                    id="imageUrl"
-                    placeholder="https://..."
-                    value={formData.imageUrl}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, imageUrl: e.target.value }))}
+
+                  {/* Hidden file input */}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
                   />
+
+                  {formData.imageUrl ? (
+                    // Show uploaded image preview
+                    <div className="relative rounded-lg border border-border overflow-hidden">
+                      <div className="relative h-40 w-full bg-muted">
+                        <Image
+                          src={formData.imageUrl}
+                          alt="Preview"
+                          fill
+                          className="object-cover"
+                          unoptimized
+                        />
+                      </div>
+                      <div className="absolute top-2 right-2 flex gap-2">
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={isUploading}
+                        >
+                          <Upload className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={handleRemoveImage}
+                          disabled={isUploading}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    // Show upload button
+                    <div
+                      onClick={() => !isUploading && fileInputRef.current?.click()}
+                      className="flex flex-col items-center justify-center h-40 rounded-lg border-2 border-dashed border-muted-foreground/25 hover:border-muted-foreground/50 cursor-pointer transition-colors bg-muted/50"
+                    >
+                      {isUploading ? (
+                        <>
+                          <Loader2 className="h-8 w-8 text-muted-foreground animate-spin mb-2" />
+                          <p className="text-sm text-muted-foreground">Subiendo imagen...</p>
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                          <p className="text-sm text-muted-foreground">Haz clic para subir una imagen</p>
+                          <p className="text-xs text-muted-foreground/70 mt-1">PNG, JPG o GIF (max. 5MB)</p>
+                          <p className="text-xs text-blue-500 mt-2 font-medium">Dimensiones recomendadas: 1920 x 400 px</p>
+                        </>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Product */}
