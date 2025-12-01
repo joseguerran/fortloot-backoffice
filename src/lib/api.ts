@@ -311,6 +311,21 @@ export const configApi = {
       throw new Error(response.data.error || 'Failed to set WhatsApp enabled');
     }
   },
+
+  getCryptoPaymentsEnabled: async (): Promise<boolean> => {
+    const response = await apiClient.get('/config/crypto-payments-enabled');
+    if (response.data.success) {
+      return response.data.enabled as boolean;
+    }
+    throw new Error(response.data.error || 'Failed to get crypto payments enabled');
+  },
+
+  setCryptoPaymentsEnabled: async (enabled: boolean): Promise<void> => {
+    const response = await apiClient.put('/config/crypto-payments-enabled', { enabled });
+    if (!response.data.success) {
+      throw new Error(response.data.error || 'Failed to set crypto payments enabled');
+    }
+  },
 };
 
 // ----- Payment Methods -----

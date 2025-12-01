@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
-import { Settings, ShoppingCart, MessageSquare, Bot, Check, Wrench, Phone } from 'lucide-react';
+import { Settings, ShoppingCart, MessageSquare, Bot, Check, Wrench, Phone, Bitcoin } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function SettingsPage() {
@@ -30,6 +30,12 @@ export default function SettingsPage() {
   const { data: whatsappEnabled, isLoading: isLoadingWhatsApp } = useQuery<boolean>({
     queryKey: ['whatsapp-enabled'],
     queryFn: () => configApi.getWhatsAppEnabled(),
+  });
+
+  // Fetch crypto payments enabled
+  const { data: cryptoPaymentsEnabled, isLoading: isLoadingCrypto } = useQuery<boolean>({
+    queryKey: ['crypto-payments-enabled'],
+    queryFn: () => configApi.getCryptoPaymentsEnabled(),
   });
 
   // Update checkout mode mutation
@@ -62,6 +68,18 @@ export default function SettingsPage() {
     onSuccess: () => {
       toast.success('Configuración de WhatsApp actualizada');
       queryClient.invalidateQueries({ queryKey: ['whatsapp-enabled'] });
+    },
+    onError: (error: any) => {
+      toast.error(`Error al actualizar: ${error.message}`);
+    },
+  });
+
+  // Update crypto payments mutation
+  const updateCryptoMutation = useMutation({
+    mutationFn: (enabled: boolean) => configApi.setCryptoPaymentsEnabled(enabled),
+    onSuccess: () => {
+      toast.success('Configuración de pagos crypto actualizada');
+      queryClient.invalidateQueries({ queryKey: ['crypto-payments-enabled'] });
     },
     onError: (error: any) => {
       toast.error(`Error al actualizar: ${error.message}`);
@@ -110,7 +128,7 @@ export default function SettingsPage() {
     <>
       <Header title="Configuración del Sistema" />
       <div className="flex flex-1 flex-col gap-4 p-4">
-        {(isLoading || isLoadingManual || isLoadingWhatsApp) ? (
+        {(isLoading || isLoadingManual || isLoadingWhatsApp || isLoadingCrypto) ? (
           <div className="space-y-4">
             <Skeleton className="h-48 w-full" />
             <Skeleton className="h-32 w-full" />
@@ -202,6 +220,51 @@ export default function SettingsPage() {
                   <p className="text-xs text-muted-foreground mt-2">
                     Asegúrate de tener configuradas las variables <code className="bg-muted px-1 rounded">WAHA_API_URL</code> y{' '}
                     <code className="bg-muted px-1 rounded">ADMIN_WHATSAPP</code> en el backend.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Crypto Payments Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Bitcoin className="w-5 h-5" />
+                  Pagos con Criptomonedas
+                </CardTitle>
+                <CardDescription>
+                  Habilita o deshabilita pagos con criptomonedas a través de Cryptomus.
+                  Los clientes podrán pagar con Bitcoin, USDT y otras criptomonedas.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex-1">
+                    <h3 className="font-medium mb-1">Activar Pagos Crypto</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Cuando está activo, los clientes verán la opción de pagar con criptomonedas
+                      en el checkout. Requiere configuración de Cryptomus.
+                    </p>
+                  </div>
+                  <Switch
+                    checked={cryptoPaymentsEnabled || false}
+                    onCheckedChange={(checked) => updateCryptoMutation.mutate(checked)}
+                    disabled={updateCryptoMutation.isPending}
+                  />
+                </div>
+
+                <div className="p-4 bg-muted/50 rounded-lg border">
+                  <p className="text-sm text-muted-foreground">
+                    <strong>Estado:</strong>{' '}
+                    {cryptoPaymentsEnabled ? (
+                      <span className="text-green-600 font-semibold">Activo</span>
+                    ) : (
+                      <span className="text-gray-600 font-semibold">Desactivado</span>
+                    )}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Asegúrate de tener configuradas las variables <code className="bg-muted px-1 rounded">CRYPTOMUS_API_KEY</code> y{' '}
+                    <code className="bg-muted px-1 rounded">CRYPTOMUS_MERCHANT_ID</code> en el backend.
                   </p>
                 </div>
               </CardContent>
