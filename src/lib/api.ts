@@ -8,7 +8,7 @@ const apiClient: AxiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 30000, // 30 seconds
+  timeout: 120000, // 2 minutes - catalog sync needs more time
 });
 
 // Request interceptor - Add API key to headers
