@@ -131,6 +131,16 @@ export const botsApi = {
     const response = await apiClient.post(`/bots/${id}/sync-friends`);
     return handleResponse<{ totalInEpic: number; alreadyInDatabase: number; newFriendsAdded: number }>(response);
   },
+
+  refreshVBucks: async (id: string): Promise<{ botId: string; vbucks: number }> => {
+    const response = await apiClient.get(`/bots/${id}/vbucks`);
+    return handleResponse<{ botId: string; vbucks: number }>(response);
+  },
+
+  addFriend: async (id: string, epicId: string): Promise<{ botId: string; epicId: string; status: string }> => {
+    const response = await apiClient.post(`/bots/${id}/add-friend`, { epicId });
+    return handleResponse<{ botId: string; epicId: string; status: string }>(response);
+  },
 };
 
 // ----- Orders -----
@@ -173,6 +183,11 @@ export const ordersApi = {
 
   markBotFixed: async (id: string): Promise<void> => {
     const response = await apiClient.post(`/orders/${id}/bot-fixed`);
+    return handleResponse<void>(response);
+  },
+
+  continueOrder: async (id: string): Promise<void> => {
+    const response = await apiClient.post(`/orders/${id}/continue`);
     return handleResponse<void>(response);
   },
 };

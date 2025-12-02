@@ -19,7 +19,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { ArrowLeft, XCircle, RotateCw, User, Package, DollarSign, Calendar, AlertCircle, CheckCircle, Clock, ChevronDown, ChevronUp, Receipt, FileText, Bitcoin, ExternalLink } from 'lucide-react';
+import { ArrowLeft, XCircle, RotateCw, User, Package, DollarSign, Calendar, AlertCircle, CheckCircle, Clock, ChevronDown, ChevronUp, Receipt, FileText, Bitcoin, ExternalLink, PlayCircle } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
 import { toast } from 'sonner';
 import { POLLING_INTERVALS } from '@/lib/constants';
@@ -147,6 +147,18 @@ export default function OrderDetailPage() {
     },
   });
 
+  const continueOrderMutation = useMutation({
+    mutationFn: () => ordersApi.continueOrder(orderId),
+    onSuccess: () => {
+      toast.success('Orden reempujada exitosamente. Reencolada para procesamiento.');
+      queryClient.invalidateQueries({ queryKey: ['order', orderId] });
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Error al reempujar la orden');
+    },
+  });
+
   if (isLoading) {
     return (
       <>
@@ -191,6 +203,8 @@ export default function OrderDetailPage() {
   const canApprove = order.status === 'PAYMENT_UPLOADED';
   const canMarkVBucksLoaded = order.status === 'WAITING_VBUCKS';
   const canMarkBotFixed = order.status === 'WAITING_BOT_FIX';
+  // Can continue order if it's stuck in an intermediate state
+  const canContinue = ['PAYMENT_VERIFIED', 'WAITING_FRIENDSHIP', 'WAITING_PERIOD', 'QUEUED', 'FAILED', 'WAITING_VBUCKS', 'WAITING_BOT_FIX'].includes(order.status);
 
   return (
     <>
@@ -289,6 +303,34 @@ export default function OrderDetailPage() {
                       className="bg-orange-600 text-white hover:bg-orange-700"
                     >
                       Yes, bot is fixed
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+            {canContinue && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="default" className="bg-blue-600 hover:bg-blue-700">
+                    <PlayCircle className="mr-2 h-4 w-4" />
+                    Continuar
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Reempujar orden?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Esta accion reencolara la orden desde su estado actual ({order.status.replace(/_/g, ' ')}) para que continue su procesamiento. Usa esto cuando una orden se haya quedado atascada.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => continueOrderMutation.mutate()}
+                      disabled={continueOrderMutation.isPending}
+                      className="bg-blue-600 text-white hover:bg-blue-700"
+                    >
+                      {continueOrderMutation.isPending ? 'Procesando...' : 'Si, continuar'}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>

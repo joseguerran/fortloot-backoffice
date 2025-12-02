@@ -20,7 +20,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Search, RefreshCw, Users, CheckCircle2, Clock, XCircle, AlertCircle, UserPlus, Play, Square, RotateCw, Trash2, Activity, Gift, MessageSquare, AlertTriangle, UserCheck, UserMinus, Coins, FileText } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ArrowLeft, Search, RefreshCw, Users, CheckCircle2, Clock, XCircle, AlertCircle, UserPlus, Play, Square, RotateCw, Trash2, Activity, Gift, MessageSquare, AlertTriangle, UserCheck, UserMinus, Coins, FileText, Wallet } from 'lucide-react';
 import { POLLING_INTERVALS } from '@/lib/constants';
 import type { Friendship, BotActivity, BotActivityType } from '@/types/api';
 import { BotErrorLog } from '@/components/BotErrorLog';
@@ -88,6 +89,8 @@ export default function BotDetailPage() {
   const botId = params.botId as string;
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [isAddFriendDialogOpen, setIsAddFriendDialogOpen] = useState(false);
+  const [addFriendEpicId, setAddFriendEpicId] = useState('');
   const queryClient = useQueryClient();
 
   const { data: bot, isLoading: botLoading } = useQuery({
@@ -124,6 +127,32 @@ export default function BotDetailPage() {
   const handleSyncFriends = () => {
     syncFriendsMutation.mutate();
   };
+
+  // Mutation para refrescar V-Bucks
+  const refreshVBucksMutation = useMutation({
+    mutationFn: () => botsApi.refreshVBucks(botId),
+    onSuccess: (data) => {
+      toast.success(`Saldo actualizado: ${data.vbucks.toLocaleString()} V-Bucks`);
+      queryClient.invalidateQueries({ queryKey: ['bot', botId] });
+    },
+    onError: (error: any) => {
+      toast.error(`Error: ${error.response?.data?.message || error.message || 'Error desconocido'}`);
+    },
+  });
+
+  // Mutation para agregar amigo
+  const addFriendMutation = useMutation({
+    mutationFn: (epicId: string) => botsApi.addFriend(botId, epicId),
+    onSuccess: () => {
+      toast.success('Solicitud de amistad enviada');
+      setAddFriendEpicId('');
+      setIsAddFriendDialogOpen(false);
+      queryClient.invalidateQueries({ queryKey: ['bot-friends', botId] });
+    },
+    onError: (error: any) => {
+      toast.error(`Error: ${error.response?.data?.message || error.message || 'Error desconocido'}`);
+    },
+  });
 
   const handleStart = async () => {
     try {
@@ -284,18 +313,37 @@ export default function BotDetailPage() {
         {/* Bot Info Stats */}
         <div className="grid gap-4 md:grid-cols-5">
           <Card className="p-4">
-            <div className="flex items-center gap-2">
-              <div className={`h-3 w-3 rounded-full ${
-                bot?.status === 'ONLINE' ? 'bg-green-500' :
-                bot?.status === 'OFFLINE' ? 'bg-gray-500' :
-                bot?.status === 'ERROR' ? 'bg-red-500' : 'bg-yellow-500'
-              }`} />
-              <div className="text-sm text-muted-foreground">Estado</div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className={`h-3 w-3 rounded-full ${
+                  bot?.status === 'ONLINE' ? 'bg-green-500' :
+                  bot?.status === 'OFFLINE' ? 'bg-gray-500' :
+                  bot?.status === 'ERROR' ? 'bg-red-500' : 'bg-yellow-500'
+                }`} />
+                <div className="text-sm text-muted-foreground">Estado</div>
+              </div>
+              <button
+                onClick={() => queryClient.invalidateQueries({ queryKey: ['bot', botId] })}
+                className="p-1 rounded-md hover:bg-muted transition-colors"
+                title="Actualizar estado"
+              >
+                <RefreshCw className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" />
+              </button>
             </div>
             <div className="text-2xl font-bold mt-1">{bot?.status || '-'}</div>
           </Card>
           <Card className="p-4">
-            <div className="text-sm text-muted-foreground">V-Bucks</div>
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-muted-foreground">V-Bucks</div>
+              <button
+                onClick={() => refreshVBucksMutation.mutate()}
+                disabled={refreshVBucksMutation.isPending || bot?.status === 'OFFLINE'}
+                className="p-1 rounded-md hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Actualizar V-Bucks"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 text-muted-foreground hover:text-foreground ${refreshVBucksMutation.isPending ? 'animate-spin' : ''}`} />
+              </button>
+            </div>
             <div className="text-2xl font-bold text-purple-500">{bot?.vBucks?.toLocaleString() || 0}</div>
           </Card>
           <Card className="p-4">
@@ -307,7 +355,27 @@ export default function BotDetailPage() {
             <div className="text-2xl font-bold">{bot?.giftsToday || 0}</div>
           </Card>
           <Card className="p-4">
-            <div className="text-sm text-muted-foreground">Amigos</div>
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-muted-foreground">Amigos</div>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setIsAddFriendDialogOpen(true)}
+                  disabled={bot?.status === 'OFFLINE'}
+                  className="p-1 rounded-md hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Agregar amigo"
+                >
+                  <UserPlus className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" />
+                </button>
+                <button
+                  onClick={() => handleSyncFriends()}
+                  disabled={syncFriendsMutation.isPending || bot?.status === 'OFFLINE'}
+                  className="p-1 rounded-md hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Sincronizar amigos"
+                >
+                  <RefreshCw className={`h-3.5 w-3.5 text-muted-foreground hover:text-foreground ${syncFriendsMutation.isPending ? 'animate-spin' : ''}`} />
+                </button>
+              </div>
+            </div>
             <div className="text-2xl font-bold">{friendStats.total}</div>
           </Card>
         </div>
@@ -335,7 +403,16 @@ export default function BotDetailPage() {
             {/* Friends Stats */}
             <div className="grid gap-4 md:grid-cols-4">
               <Card className="p-4">
-                <div className="text-sm text-muted-foreground">Total</div>
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-muted-foreground">Total</div>
+                  <button
+                    onClick={() => refetchFriends()}
+                    className="p-1 rounded-md hover:bg-muted transition-colors"
+                    title="Actualizar lista"
+                  >
+                    <RefreshCw className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" />
+                  </button>
+                </div>
                 <div className="text-2xl font-bold">{friendStats.total}</div>
               </Card>
               <Card className="p-4">
@@ -347,7 +424,17 @@ export default function BotDetailPage() {
                 <div className="text-2xl font-bold text-yellow-500">{friendStats.pending}</div>
               </Card>
               <Card className="p-4">
-                <div className="text-sm text-muted-foreground">En Epic</div>
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-muted-foreground">En Epic</div>
+                  <button
+                    onClick={() => handleSyncFriends()}
+                    disabled={syncFriendsMutation.isPending || bot?.status === 'OFFLINE'}
+                    className="p-1 rounded-md hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Sincronizar con Epic"
+                  >
+                    <RefreshCw className={`h-3.5 w-3.5 text-muted-foreground hover:text-foreground ${syncFriendsMutation.isPending ? 'animate-spin' : ''}`} />
+                  </button>
+                </div>
                 <div className="text-2xl font-bold text-blue-500">{friendStats.live}</div>
               </Card>
             </div>
@@ -387,18 +474,10 @@ export default function BotDetailPage() {
                     Pendientes
                   </Button>
                   <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleSyncFriends()}
-                    disabled={syncFriendsMutation.isPending}
-                  >
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    {syncFriendsMutation.isPending ? 'Sincronizando...' : 'Sincronizar'}
-                  </Button>
-                  <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
                     onClick={() => refetchFriends()}
+                    title="Actualizar lista"
                   >
                     <RefreshCw className="h-4 w-4" />
                   </Button>
@@ -488,13 +567,13 @@ export default function BotDetailPage() {
             <Card className="p-4">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold">Actividades Recientes</h3>
-                <Button
-                  variant="outline"
-                  size="sm"
+                <button
                   onClick={() => refetchActivities()}
+                  className="p-1.5 rounded-md hover:bg-muted transition-colors"
+                  title="Actualizar actividades"
                 >
-                  <RefreshCw className="h-4 w-4" />
-                </Button>
+                  <RefreshCw className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                </button>
               </div>
 
               {activitiesLoading ? (
@@ -640,6 +719,45 @@ export default function BotDetailPage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Add Friend Dialog */}
+      <Dialog open={isAddFriendDialogOpen} onOpenChange={setIsAddFriendDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Agregar Amigo</DialogTitle>
+            <DialogDescription>
+              Ingresa el Epic Account ID para enviar solicitud de amistad
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <Input
+              placeholder="Epic Account ID"
+              value={addFriendEpicId}
+              onChange={(e) => setAddFriendEpicId(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">
+              El Epic Account ID es un identificador único de 32 caracteres (ej: abc123def456...)
+            </p>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsAddFriendDialogOpen(false);
+                setAddFriendEpicId('');
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={() => addFriendMutation.mutate(addFriendEpicId)}
+              disabled={!addFriendEpicId || addFriendMutation.isPending}
+            >
+              {addFriendMutation.isPending ? 'Enviando...' : 'Enviar Solicitud'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
