@@ -204,95 +204,98 @@ export default function CustomersPage() {
   return (
     <>
       <Header title="Clientes" />
-      <div className="flex flex-1 flex-col gap-4 p-4">
+      <div className="flex flex-1 flex-col gap-3 p-3 sm:gap-4 sm:p-4 lg:p-6">
         {/* Stats */}
-        <div className="grid gap-4 md:grid-cols-5">
-          <Card className="p-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-3 lg:grid-cols-5">
+          <Card className="p-3 sm:p-4">
             <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Total</span>
+              <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
+              <span className="text-xs sm:text-sm text-muted-foreground">Total</span>
             </div>
-            <div className="text-2xl font-bold">{stats.total}</div>
+            <div className="text-xl font-bold sm:text-2xl">{stats.total}</div>
           </Card>
-          <Card className="p-4">
+          <Card className="p-3 sm:p-4">
             <div className="flex items-center gap-2">
-              <User className="h-4 w-4 text-gray-500" />
-              <span className="text-sm text-muted-foreground">Regular</span>
+              <User className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500" />
+              <span className="text-xs sm:text-sm text-muted-foreground">Regular</span>
             </div>
-            <div className="text-2xl font-bold text-gray-500">{stats.regular}</div>
+            <div className="text-xl font-bold text-gray-500 sm:text-2xl">{stats.regular}</div>
           </Card>
-          <Card className="p-4">
+          <Card className="p-3 sm:p-4">
             <div className="flex items-center gap-2">
-              <Crown className="h-4 w-4 text-yellow-500" />
-              <span className="text-sm text-muted-foreground">VIP</span>
+              <Crown className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-yellow-500" />
+              <span className="text-xs sm:text-sm text-muted-foreground">VIP</span>
             </div>
-            <div className="text-2xl font-bold text-yellow-500">{stats.vip}</div>
+            <div className="text-xl font-bold text-yellow-500 sm:text-2xl">{stats.vip}</div>
           </Card>
-          <Card className="p-4">
+          <Card className="p-3 sm:p-4">
             <div className="flex items-center gap-2">
-              <Crown className="h-4 w-4 text-purple-500" />
-              <span className="text-sm text-muted-foreground">Premium</span>
+              <Crown className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-500" />
+              <span className="text-xs sm:text-sm text-muted-foreground">Premium</span>
             </div>
-            <div className="text-2xl font-bold text-purple-500">{stats.premium}</div>
+            <div className="text-xl font-bold text-purple-500 sm:text-2xl">{stats.premium}</div>
           </Card>
-          <Card className="p-4">
+          <Card className="p-3 sm:p-4 col-span-2 sm:col-span-1">
             <div className="flex items-center gap-2">
-              <Ban className="h-4 w-4 text-red-500" />
-              <span className="text-sm text-muted-foreground">Blacklisted</span>
+              <Ban className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-red-500" />
+              <span className="text-xs sm:text-sm text-muted-foreground">Blacklisted</span>
             </div>
-            <div className="text-2xl font-bold text-red-500">{stats.blacklisted}</div>
+            <div className="text-xl font-bold text-red-500 sm:text-2xl">{stats.blacklisted}</div>
           </Card>
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
-          <div className="relative flex-1 max-w-sm">
+        <div className="flex flex-col gap-3 sm:flex-row sm:gap-4 sm:items-center">
+          <div className="relative flex-1 w-full sm:max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar por nombre, Epic ID o email..."
+              placeholder="Buscar..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-10"
             />
           </div>
-          <Select value={tierFilter} onValueChange={(v) => { setTierFilter(v); setPage(1); }}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Tier" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los tiers</SelectItem>
-              <SelectItem value="REGULAR">Regular</SelectItem>
-              <SelectItem value="VIP">VIP</SelectItem>
-              <SelectItem value="PREMIUM">Premium</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1); }}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Estado" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="active">Activos</SelectItem>
-              <SelectItem value="blacklisted">Blacklisted</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="grid grid-cols-2 gap-3 sm:flex sm:gap-4">
+            <Select value={tierFilter} onValueChange={(v) => { setTierFilter(v); setPage(1); }}>
+              <SelectTrigger className="w-full sm:w-[150px]">
+                <SelectValue placeholder="Tier" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los tiers</SelectItem>
+                <SelectItem value="REGULAR">Regular</SelectItem>
+                <SelectItem value="VIP">VIP</SelectItem>
+                <SelectItem value="PREMIUM">Premium</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1); }}>
+              <SelectTrigger className="w-full sm:w-[150px]">
+                <SelectValue placeholder="Estado" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="active">Activos</SelectItem>
+                <SelectItem value="blacklisted">Blacklisted</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {/* Table */}
-        <Card>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Epic ID</TableHead>
-                <TableHead>Contacto</TableHead>
-                <TableHead>Tier</TableHead>
-                <TableHead className="text-right">Órdenes</TableHead>
-                <TableHead className="text-right">Total Gastado</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead className="w-[50px]"></TableHead>
-              </TableRow>
-            </TableHeader>
+        <Card className="overflow-hidden">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="min-w-[120px]">Cliente</TableHead>
+                  <TableHead className="hidden lg:table-cell min-w-[120px]">Epic ID</TableHead>
+                  <TableHead className="hidden md:table-cell min-w-[150px]">Contacto</TableHead>
+                  <TableHead className="min-w-[80px]">Tier</TableHead>
+                  <TableHead className="hidden sm:table-cell text-right min-w-[70px]">Órdenes</TableHead>
+                  <TableHead className="text-right min-w-[90px]">Gastado</TableHead>
+                  <TableHead className="hidden sm:table-cell min-w-[90px]">Estado</TableHead>
+                  <TableHead className="w-[50px]"></TableHead>
+                </TableRow>
+              </TableHeader>
             <TableBody>
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
@@ -310,16 +313,16 @@ export default function CustomersPage() {
               ) : data?.customers && data.customers.length > 0 ? (
                 data.customers.map((customer) => (
                   <TableRow key={customer.id}>
-                    <TableCell className="font-medium">{customer.displayName}</TableCell>
-                    <TableCell className="font-mono text-xs text-muted-foreground">
+                    <TableCell className="font-medium text-sm">{customer.displayName}</TableCell>
+                    <TableCell className="hidden lg:table-cell font-mono text-xs text-muted-foreground">
                       {customer.epicAccountId ? customer.epicAccountId.substring(0, 12) + '...' : '-'}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden md:table-cell">
                       <div className="flex items-center gap-1 text-sm text-muted-foreground">
                         {customer.contactPreference === 'EMAIL' ? (
                           <>
                             <Mail className="h-3 w-3" />
-                            <span className="truncate max-w-[150px]">{customer.email || '-'}</span>
+                            <span className="truncate max-w-[120px]">{customer.email || '-'}</span>
                           </>
                         ) : (
                           <>
@@ -330,25 +333,25 @@ export default function CustomersPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={TIER_BADGE_VARIANT[customer.tier]} className={TIER_COLORS[customer.tier]}>
-                        {customer.tier === 'REGULAR' && <User className="h-3 w-3 mr-1" />}
-                        {(customer.tier === 'VIP' || customer.tier === 'PREMIUM') && <Crown className="h-3 w-3 mr-1" />}
+                      <Badge variant={TIER_BADGE_VARIANT[customer.tier]} className={`${TIER_COLORS[customer.tier]} text-[10px] sm:text-xs`}>
+                        <span className="hidden sm:inline">{customer.tier === 'REGULAR' && <User className="h-3 w-3 mr-1 inline" />}</span>
+                        <span className="hidden sm:inline">{(customer.tier === 'VIP' || customer.tier === 'PREMIUM') && <Crown className="h-3 w-3 mr-1 inline" />}</span>
                         {customer.tier}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">{customer.totalOrders}</TableCell>
-                    <TableCell className="text-right font-medium">
+                    <TableCell className="hidden sm:table-cell text-right">{customer.totalOrders}</TableCell>
+                    <TableCell className="text-right font-medium text-sm">
                       {formatCurrency(customer.totalSpent)}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell">
                       {customer.isBlacklisted ? (
-                        <Badge variant="destructive">
-                          <Ban className="h-3 w-3 mr-1" />
-                          Blacklisted
+                        <Badge variant="destructive" className="text-[10px] sm:text-xs">
+                          <Ban className="h-3 w-3 mr-1 hidden sm:inline" />
+                          Blacklist
                         </Badge>
                       ) : (
-                        <Badge variant="outline" className="text-green-600 border-green-600">
-                          <ShieldCheck className="h-3 w-3 mr-1" />
+                        <Badge variant="outline" className="text-green-600 border-green-600 text-[10px] sm:text-xs">
+                          <ShieldCheck className="h-3 w-3 mr-1 hidden sm:inline" />
                           Activo
                         </Badge>
                       )}
@@ -401,15 +404,16 @@ export default function CustomersPage() {
               )}
             </TableBody>
           </Table>
+          </div>
         </Card>
 
         {/* Pagination */}
         {data?.pagination && data.pagination.pages > 1 && (
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">
-              Mostrando {((page - 1) * 20) + 1} - {Math.min(page * 20, data.pagination.total)} de {data.pagination.total} clientes
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
+              {((page - 1) * 20) + 1} - {Math.min(page * 20, data.pagination.total)} de {data.pagination.total}
             </p>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
@@ -417,10 +421,10 @@ export default function CustomersPage() {
                 disabled={page === 1}
               >
                 <ChevronLeft className="h-4 w-4" />
-                Anterior
+                <span className="hidden sm:inline ml-1">Anterior</span>
               </Button>
-              <span className="text-sm">
-                Página {page} de {data.pagination.pages}
+              <span className="text-xs sm:text-sm">
+                {page} / {data.pagination.pages}
               </span>
               <Button
                 variant="outline"
@@ -428,7 +432,7 @@ export default function CustomersPage() {
                 onClick={() => setPage((p) => Math.min(data.pagination.pages, p + 1))}
                 disabled={page === data.pagination.pages}
               >
-                Siguiente
+                <span className="hidden sm:inline mr-1">Siguiente</span>
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>

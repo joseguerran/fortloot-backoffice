@@ -76,12 +76,12 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <Link href="/">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                  <Bot className="size-4" />
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary shadow-neon-purple animate-pulse-neon">
+                  <Bot className="size-4 text-white" />
                 </div>
                 <div className="flex flex-col gap-0.5 leading-none">
-                  <span className="font-semibold">Fortloot Admin</span>
-                  <span className="text-xs text-muted-foreground">Bot Management</span>
+                  <span className="font-bold bg-gradient-to-r from-primary to-neon-cyan bg-clip-text text-transparent">FortLoot</span>
+                  <span className="text-xs text-muted-foreground">Admin Panel</span>
                 </div>
               </Link>
             </SidebarMenuButton>

@@ -328,71 +328,163 @@ export default function AnnouncementsPage() {
   return (
     <>
       <Header title="Anuncios" />
-      <div className="flex flex-1 flex-col gap-4 p-4">
+      <div className="flex flex-1 flex-col gap-3 p-3 sm:gap-4 sm:p-4 lg:p-6">
         {/* Stats */}
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card className="p-4">
-            <div className="flex items-center gap-2">
-              <Megaphone className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Total</span>
+        <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4">
+          <Card className="p-3 sm:p-4">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <Megaphone className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
+              <span className="text-xs sm:text-sm text-muted-foreground">Total</span>
             </div>
-            <div className="text-2xl font-bold">{stats.total}</div>
+            <div className="text-xl sm:text-2xl font-bold">{stats.total}</div>
           </Card>
-          <Card className="p-4">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-orange-500" />
-              <span className="text-sm text-muted-foreground">Mantenimiento</span>
+          <Card className="p-3 sm:p-4">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <AlertTriangle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-orange-500" />
+              <span className="text-xs sm:text-sm text-muted-foreground">Mant.</span>
             </div>
-            <div className="text-2xl font-bold text-orange-500">{stats.maintenance}</div>
+            <div className="text-xl sm:text-2xl font-bold text-orange-500">{stats.maintenance}</div>
           </Card>
-          <Card className="p-4">
-            <div className="flex items-center gap-2">
-              <Gift className="h-4 w-4 text-blue-500" />
-              <span className="text-sm text-muted-foreground">Promocion</span>
+          <Card className="p-3 sm:p-4">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <Gift className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-500" />
+              <span className="text-xs sm:text-sm text-muted-foreground">Promo</span>
             </div>
-            <div className="text-2xl font-bold text-blue-500">{stats.promotion}</div>
+            <div className="text-xl sm:text-2xl font-bold text-blue-500">{stats.promotion}</div>
           </Card>
-          <Card className="p-4">
-            <div className="flex items-center gap-2">
-              <Power className="h-4 w-4 text-green-500" />
-              <span className="text-sm text-muted-foreground">Activos</span>
+          <Card className="p-3 sm:p-4">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <Power className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-500" />
+              <span className="text-xs sm:text-sm text-muted-foreground">Activos</span>
             </div>
-            <div className="text-2xl font-bold text-green-500">{stats.active}</div>
+            <div className="text-xl sm:text-2xl font-bold text-green-500">{stats.active}</div>
           </Card>
         </div>
 
         {/* Filters & Actions */}
-        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-          <div className="flex gap-4">
-            <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los tipos</SelectItem>
-                <SelectItem value="MAINTENANCE">Mantenimiento</SelectItem>
-                <SelectItem value="PROMOTION">Promocion</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Estado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="active">Activos</SelectItem>
-                <SelectItem value="inactive">Inactivos</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <Button onClick={handleOpenCreate}>
-            <Plus className="h-4 w-4 mr-2" />
-            Nuevo Anuncio
+        <div className="flex gap-2 sm:gap-3 items-center">
+          <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <SelectTrigger className="h-8 flex-1 sm:w-[140px] sm:flex-none text-xs sm:text-sm">
+              <SelectValue placeholder="Tipo" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los tipos</SelectItem>
+              <SelectItem value="MAINTENANCE">Mantenimiento</SelectItem>
+              <SelectItem value="PROMOTION">Promocion</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="h-8 flex-1 sm:w-[130px] sm:flex-none text-xs sm:text-sm">
+              <SelectValue placeholder="Estado" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="active">Activos</SelectItem>
+              <SelectItem value="inactive">Inactivos</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button onClick={handleOpenCreate} size="sm" className="h-8 w-8 p-0 ml-auto shrink-0">
+            <Plus className="h-4 w-4" />
           </Button>
         </div>
 
-        {/* Table */}
-        <Card>
+        {/* Mobile Cards View */}
+        <div className="md:hidden space-y-3">
+          {isLoading ? (
+            Array.from({ length: 3 }).map((_, i) => (
+              <Card key={i} className="p-3">
+                <Skeleton className="h-20 w-full" />
+              </Card>
+            ))
+          ) : announcements && announcements.length > 0 ? (
+            announcements.map((announcement) => {
+              const TypeIcon = TYPE_CONFIG[announcement.type].icon;
+              return (
+                <Card key={announcement.id} className="p-3">
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <Badge
+                        variant="outline"
+                        className={`${TYPE_CONFIG[announcement.type].color} ${TYPE_CONFIG[announcement.type].bgColor} text-[10px]`}
+                      >
+                        <TypeIcon className="h-3 w-3 mr-1" />
+                        {TYPE_CONFIG[announcement.type].label}
+                      </Badge>
+                      {announcement.isActive ? (
+                        <Badge variant="default" className="bg-green-500 text-[10px]">
+                          Activo
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary" className="text-[10px]">
+                          Inactivo
+                        </Badge>
+                      )}
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 -mt-1 -mr-1">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => handleOpenEdit(announcement)}>
+                          <Pencil className="h-4 w-4 mr-2" />
+                          Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleClone(announcement)}>
+                          <Copy className="h-4 w-4 mr-2" />
+                          Clonar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => toggleMutation.mutate(announcement.id)}>
+                          <Power className="h-4 w-4 mr-2" />
+                          {announcement.isActive ? 'Desactivar' : 'Activar'}
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => handleOpenDelete(announcement)}
+                          className="text-red-600"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Eliminar
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                  {announcement.title && (
+                    <h3 className="font-medium text-sm truncate mb-1">{announcement.title}</h3>
+                  )}
+                  {announcement.message && (
+                    <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{announcement.message}</p>
+                  )}
+                  {(announcement.startsAt || announcement.endsAt) && (
+                    <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                      <Calendar className="h-3 w-3" />
+                      <span>
+                        {formatDate(announcement.startsAt)} - {formatDate(announcement.endsAt)}
+                      </span>
+                    </div>
+                  )}
+                </Card>
+              );
+            })
+          ) : (
+            <Card className="p-6">
+              <div className="flex flex-col items-center gap-2">
+                <Megaphone className="h-8 w-8 text-muted-foreground" />
+                <p className="text-muted-foreground text-sm">No hay anuncios</p>
+                <Button variant="outline" size="sm" onClick={handleOpenCreate}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Crear primer anuncio
+                </Button>
+              </div>
+            </Card>
+          )}
+        </div>
+
+        {/* Desktop Table View */}
+        <Card className="hidden md:block">
           <Table>
             <TableHeader>
               <TableRow>

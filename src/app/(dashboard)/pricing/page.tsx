@@ -73,7 +73,7 @@ export default function PricingPage() {
   return (
     <>
       <Header title="Configuración de Precios" />
-      <div className="flex flex-1 flex-col gap-4 p-4">
+      <div className="flex flex-1 flex-col gap-3 p-3 sm:gap-4 sm:p-4 lg:p-6">
         {isLoading ? (
           <div className="space-y-4">
             <Skeleton className="h-48 w-full" />
@@ -95,7 +95,7 @@ export default function PricingPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="vbucksToUsdRate">V-Bucks a USD</Label>
                 <Input
@@ -127,7 +127,7 @@ export default function PricingPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="currencyCode">Código de Moneda</Label>
                 <Input
@@ -169,9 +169,9 @@ export default function PricingPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="defaultProfitMargin">Margen de Ganancia por Defecto (%)</Label>
+                <Label htmlFor="defaultProfitMargin">Margen de Ganancia (%)</Label>
                 <Input
                   id="defaultProfitMargin"
                   type="number"
@@ -186,7 +186,7 @@ export default function PricingPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="defaultDiscount">Descuento por Defecto (%)</Label>
+                <Label htmlFor="defaultDiscount">Descuento (%)</Label>
                 <Input
                   id="defaultDiscount"
                   type="number"
@@ -215,9 +215,9 @@ export default function PricingPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="taxRate">Tasa de Impuesto (%)</Label>
+                <Label htmlFor="taxRate">Impuesto (%)</Label>
                 <Input
                   id="taxRate"
                   type="number"
@@ -276,19 +276,20 @@ export default function PricingPage() {
         </Card>
 
         {/* Actions */}
-        <div className="flex justify-end gap-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:justify-end sm:gap-4">
           <Button
             type="button"
             variant="outline"
             onClick={() => setFormData(config)}
             disabled={updateMutation.isPending}
+            className="w-full sm:w-auto"
           >
             <RefreshCw className="w-4 h-4 mr-2" />
             Restablecer
           </Button>
-          <Button type="submit" disabled={updateMutation.isPending}>
+          <Button type="submit" disabled={updateMutation.isPending} className="w-full sm:w-auto">
             <Save className="w-4 h-4 mr-2" />
-            {updateMutation.isPending ? 'Guardando...' : 'Guardar Configuración'}
+            {updateMutation.isPending ? 'Guardando...' : 'Guardar'}
           </Button>
         </div>
       </form>

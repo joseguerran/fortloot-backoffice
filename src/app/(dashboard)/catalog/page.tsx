@@ -232,28 +232,30 @@ export default function CatalogPage() {
   return (
     <>
       <Header
-        title="Catálogo de Productos"
+        title="Catálogo"
         actions={
           <div className="flex gap-2">
             <Button
               onClick={() => syncMutation.mutate()}
               disabled={syncMutation.isPending}
               variant="outline"
+              size="sm"
+              className="h-8 px-2 sm:px-3"
             >
-              <RefreshCw className={`h-4 w-4 mr-2 ${syncMutation.isPending ? 'animate-spin' : ''}`} />
-              Sincronizar Fortnite
+              <RefreshCw className={`h-4 w-4 ${syncMutation.isPending ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline ml-2">Sincronizar</span>
             </Button>
-            <Button onClick={() => setIsAddDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Nuevo Item
+            <Button onClick={() => setIsAddDialogOpen(true)} size="sm" className="h-8 px-2 sm:px-3">
+              <Plus className="h-4 w-4" />
+              <span className="hidden sm:inline ml-2">Nuevo</span>
             </Button>
           </div>
         }
       />
-      <div className="flex flex-1 flex-col gap-4 p-4">
+      <div className="flex flex-1 flex-col gap-3 p-3 sm:gap-4 sm:p-4 lg:p-6">
 
       {/* Search Bar */}
-      <div className="mb-4">
+      <div className="mb-2 sm:mb-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -275,209 +277,127 @@ export default function CatalogPage() {
       </div>
 
       {/* Item Counter and Last Updated */}
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Package className="h-4 w-4" />
+      <div className="flex flex-col gap-1 mb-2 sm:flex-row sm:justify-between sm:items-center sm:mb-3">
+        <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+          <Package className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           <span>
-            Mostrando{' '}
-            <span className="font-semibold text-foreground">
-              {pagination.total === 0 ? 0 : (pagination.page - 1) * pagination.limit + 1}-
-              {Math.min(pagination.page * pagination.limit, pagination.total)}
-            </span>{' '}
-            de <span className="font-semibold text-foreground">{pagination.total}</span> productos
-            {debouncedSearch && <span className="ml-1">para &quot;{debouncedSearch}&quot;</span>}
+            <span className="font-semibold text-foreground">{pagination.total}</span> productos
+            {debouncedSearch && <span className="ml-1">- &quot;{debouncedSearch}&quot;</span>}
           </span>
         </div>
         {lastUpdated && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground">
             <Clock className="h-4 w-4" />
             <span>
-              Última actualización:{' '}
-              <span className="font-medium text-foreground">
-                {lastUpdated.toLocaleString('es-CL', {
-                  day: '2-digit',
-                  month: '2-digit',
-                  year: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  second: '2-digit',
-                })}
-              </span>
+              Actualizado: {lastUpdated.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}
             </span>
           </div>
         )}
       </div>
 
       {/* Filters */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-        <div>
-          <Label>Tipo</Label>
-          <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger>
-              <SelectValue />
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-5 mb-3 sm:mb-4">
+        <Select value={typeFilter} onValueChange={setTypeFilter}>
+          <SelectTrigger className="h-9">
+            <SelectValue placeholder="Tipo" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos los tipos</SelectItem>
+            {PRODUCT_TYPES.map(type => (
+              <SelectItem key={type} value={type}>{type}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={rarityFilter} onValueChange={setRarityFilter}>
+          <SelectTrigger className="h-9">
+            <SelectValue placeholder="Rareza" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas las rarezas</SelectItem>
+            {RARITIES.map(rarity => (
+              <SelectItem key={rarity} value={rarity}>{rarity}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={isCustomFilter} onValueChange={setIsCustomFilter}>
+          <SelectTrigger className="h-9">
+            <SelectValue placeholder="Origen" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todo origen</SelectItem>
+            <SelectItem value="custom">Custom</SelectItem>
+            <SelectItem value="api">API</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={isActiveFilter} onValueChange={setIsActiveFilter}>
+          <SelectTrigger className="h-9">
+            <SelectValue placeholder="Estado" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todo estado</SelectItem>
+            <SelectItem value="active">Activos</SelectItem>
+            <SelectItem value="inactive">Inactivos</SelectItem>
+          </SelectContent>
+        </Select>
+        <div className="flex gap-2 col-span-2 md:col-span-1">
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="flex-1 h-9">
+              <SelectValue placeholder="Ordenar" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              {PRODUCT_TYPES.map(type => (
-                <SelectItem key={type} value={type}>{type}</SelectItem>
-              ))}
+              <SelectItem value="name">Nombre</SelectItem>
+              <SelectItem value="price">Precio</SelectItem>
+              <SelectItem value="type">Tipo</SelectItem>
+              <SelectItem value="createdAt">Fecha</SelectItem>
             </SelectContent>
           </Select>
-        </div>
-        <div>
-          <Label>Rareza</Label>
-          <Select value={rarityFilter} onValueChange={setRarityFilter}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas</SelectItem>
-              {RARITIES.map(rarity => (
-                <SelectItem key={rarity} value={rarity}>{rarity}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label>Origen</Label>
-          <Select value={isCustomFilter} onValueChange={setIsCustomFilter}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="custom">Custom</SelectItem>
-              <SelectItem value="api">API</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label>Estado</Label>
-          <Select value={isActiveFilter} onValueChange={setIsActiveFilter}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="active">Activos</SelectItem>
-              <SelectItem value="inactive">Inactivos</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label>Ordenar por</Label>
-          <div className="flex gap-2">
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="flex-1">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="name">Nombre</SelectItem>
-                <SelectItem value="price">Precio</SelectItem>
-                <SelectItem value="type">Tipo</SelectItem>
-                <SelectItem value="createdAt">Fecha</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-              className="shrink-0"
-            >
-              {sortOrder === 'asc' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+            className="shrink-0 h-9 w-9"
+          >
+            {sortOrder === 'asc' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
+          </Button>
         </div>
       </div>
 
-      {/* Table */}
-      <div className="border rounded-lg">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Imagen</TableHead>
-              <TableHead>Nombre</TableHead>
-              <TableHead>Tipo</TableHead>
-              <TableHead>Precio</TableHead>
-              <TableHead>Origen</TableHead>
-              <TableHead>Estado</TableHead>
-              <TableHead>Tags</TableHead>
-              <TableHead className="text-right">Acciones</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={8} className="text-center py-8">
-                  Cargando catálogo...
-                </TableCell>
-              </TableRow>
-            ) : items.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                  No hay items en el catálogo
-                </TableCell>
-              </TableRow>
-            ) : (
-              items.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell>
-                    {item.image ? (
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        className="h-12 w-12 object-cover rounded"
-                        onError={(e) => {
-                          e.currentTarget.onerror = null; // Prevent infinite loop
-                          e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect width="100" height="100" fill="%23374151"/%3E%3Ctext x="50" y="50" font-family="Arial" font-size="14" fill="%23fff" text-anchor="middle" dominant-baseline="middle"%3ENo Image%3C/text%3E%3C/svg%3E';
-                        }}
-                      />
-                    ) : (
-                      <div className="h-12 w-12 bg-muted rounded flex items-center justify-center text-xs text-muted-foreground">
-                        No Image
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <div className="font-medium">{item.name}</div>
-                    <div className="text-sm text-muted-foreground truncate max-w-xs">
-                      {item.description}
+      {/* Mobile Cards View */}
+      <div className="md:hidden space-y-3">
+        {isLoading ? (
+          <div className="text-center py-8 text-muted-foreground">Cargando catálogo...</div>
+        ) : items.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">No hay items en el catálogo</div>
+        ) : (
+          items.map((item) => (
+            <div key={item.id} className="border rounded-lg p-3 bg-card">
+              <div className="flex gap-3">
+                {/* Image */}
+                {item.image ? (
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    className="h-16 w-16 object-cover rounded flex-shrink-0"
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect width="100" height="100" fill="%23374151"/%3E%3Ctext x="50" y="50" font-family="Arial" font-size="14" fill="%23fff" text-anchor="middle" dominant-baseline="middle"%3ENo Img%3C/text%3E%3C/svg%3E';
+                    }}
+                  />
+                ) : (
+                  <div className="h-16 w-16 bg-muted rounded flex items-center justify-center text-xs text-muted-foreground flex-shrink-0">
+                    No Img
+                  </div>
+                )}
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <h3 className="font-medium text-sm truncate">{item.name}</h3>
+                      <p className="text-xs text-muted-foreground truncate">{item.description}</p>
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={getProductTypeColor(item.type)}>
-                      {item.type}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{formatPrice(item)}</TableCell>
-                  <TableCell>
-                    <Badge variant={item.isCustom ? 'default' : 'secondary'}>
-                      {item.isCustom ? 'Custom' : 'API'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={item.isActive ? 'default' : 'secondary'}>
-                      {item.isActive ? 'Activo' : 'Inactivo'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-1 flex-wrap max-w-xs">
-                      {item.tags.slice(0, 3).map((tag, i) => (
-                        <Badge key={i} variant="outline" className="text-xs">
-                          {tag}
-                        </Badge>
-                      ))}
-                      {item.tags.length > 3 && (
-                        <Badge variant="outline" className="text-xs">
-                          +{item.tags.length - 3}
-                        </Badge>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 flex-shrink-0">
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -490,15 +410,9 @@ export default function CatalogPage() {
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleToggleActive(item)}>
                           {item.isActive ? (
-                            <>
-                              <PowerOff className="h-4 w-4 mr-2" />
-                              Desactivar
-                            </>
+                            <><PowerOff className="h-4 w-4 mr-2" />Desactivar</>
                           ) : (
-                            <>
-                              <Power className="h-4 w-4 mr-2" />
-                              Activar
-                            </>
+                            <><Power className="h-4 w-4 mr-2" />Activar</>
                           )}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleFlashSale(item)}>
@@ -506,37 +420,173 @@ export default function CatalogPage() {
                           Flash Sale
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={() => handleDelete(item.id)}
-                          className="text-destructive"
-                        >
+                        <DropdownMenuItem onClick={() => handleDelete(item.id)} className="text-destructive">
                           <Trash2 className="h-4 w-4 mr-2" />
                           Eliminar
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
+                  </div>
+                  {/* Badges Row */}
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    <Badge className={`${getProductTypeColor(item.type)} text-[10px]`}>{item.type}</Badge>
+                    <Badge variant={item.isActive ? 'default' : 'secondary'} className="text-[10px]">
+                      {item.isActive ? 'Activo' : 'Inactivo'}
+                    </Badge>
+                    <Badge variant={item.isCustom ? 'outline' : 'secondary'} className="text-[10px]">
+                      {item.isCustom ? 'Custom' : 'API'}
+                    </Badge>
+                  </div>
+                  {/* Price */}
+                  <div className="mt-2 text-sm font-semibold text-primary">
+                    {formatPrice(item)}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden md:block border rounded-lg overflow-hidden">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[60px]">Imagen</TableHead>
+                <TableHead>Nombre</TableHead>
+                <TableHead className="w-[100px]">Tipo</TableHead>
+                <TableHead className="w-[120px]">Precio</TableHead>
+                <TableHead className="w-[80px]">Origen</TableHead>
+                <TableHead className="w-[80px]">Estado</TableHead>
+                <TableHead className="hidden lg:table-cell">Tags</TableHead>
+                <TableHead className="text-right w-[80px]">Acciones</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-8">
+                    Cargando catálogo...
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+              ) : items.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                    No hay items en el catálogo
+                  </TableCell>
+                </TableRow>
+              ) : (
+                items.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell>
+                      {item.image ? (
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="h-10 w-10 object-cover rounded"
+                          onError={(e) => {
+                            e.currentTarget.onerror = null;
+                            e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect width="100" height="100" fill="%23374151"/%3E%3Ctext x="50" y="50" font-family="Arial" font-size="14" fill="%23fff" text-anchor="middle" dominant-baseline="middle"%3ENo Img%3C/text%3E%3C/svg%3E';
+                          }}
+                        />
+                      ) : (
+                        <div className="h-10 w-10 bg-muted rounded flex items-center justify-center text-[10px] text-muted-foreground">
+                          No Img
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="font-medium">{item.name}</div>
+                      <div className="text-sm text-muted-foreground truncate max-w-xs">
+                        {item.description}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={getProductTypeColor(item.type)}>{item.type}</Badge>
+                    </TableCell>
+                    <TableCell>{formatPrice(item)}</TableCell>
+                    <TableCell>
+                      <Badge variant={item.isCustom ? 'default' : 'secondary'} className="text-xs">
+                        {item.isCustom ? 'Custom' : 'API'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={item.isActive ? 'default' : 'secondary'} className="text-xs">
+                        {item.isActive ? 'Activo' : 'Inactivo'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell">
+                      <div className="flex gap-1 flex-wrap max-w-xs">
+                        {item.tags.slice(0, 2).map((tag, i) => (
+                          <Badge key={i} variant="outline" className="text-[10px]">
+                            {tag}
+                          </Badge>
+                        ))}
+                        {item.tags.length > 2 && (
+                          <Badge variant="outline" className="text-[10px]">
+                            +{item.tags.length - 2}
+                          </Badge>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => handleEdit(item)}>
+                            <Pencil className="h-4 w-4 mr-2" />
+                            Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleToggleActive(item)}>
+                            {item.isActive ? (
+                              <><PowerOff className="h-4 w-4 mr-2" />Desactivar</>
+                            ) : (
+                              <><Power className="h-4 w-4 mr-2" />Activar</>
+                            )}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleFlashSale(item)}>
+                            <Zap className="h-4 w-4 mr-2" />
+                            Flash Sale
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => handleDelete(item.id)} className="text-destructive">
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Eliminar
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
 
       {/* Pagination Controls */}
       {pagination.pages > 1 && (
-        <div className="flex items-center justify-between mt-4">
-          <div className="text-sm text-muted-foreground">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mt-3 sm:mt-4">
+          <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
             Página {pagination.page} de {pagination.pages}
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 justify-center">
             <Button
               variant="outline"
               size="sm"
               onClick={() => setCurrentPage(currentPage - 1)}
               disabled={currentPage === 1}
             >
-              Anterior
+              <span className="hidden sm:inline">Anterior</span>
+              <span className="sm:hidden">←</span>
             </Button>
             <Button
               variant="outline"
@@ -544,7 +594,8 @@ export default function CatalogPage() {
               onClick={() => setCurrentPage(currentPage + 1)}
               disabled={currentPage === pagination.pages}
             >
-              Siguiente
+              <span className="hidden sm:inline">Siguiente</span>
+              <span className="sm:hidden">→</span>
             </Button>
           </div>
         </div>

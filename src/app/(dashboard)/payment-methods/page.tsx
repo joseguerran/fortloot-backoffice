@@ -146,16 +146,16 @@ export default function PaymentMethodsPage() {
   return (
     <>
       <Header title="Métodos de Pago" />
-      <div className="flex flex-1 flex-col gap-4 p-4">
+      <div className="flex flex-1 flex-col gap-3 p-3 sm:gap-4 sm:p-4 lg:p-6">
         {/* Header Actions */}
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
           <div>
-            <h2 className="text-2xl font-bold">Métodos de Pago</h2>
-            <p className="text-muted-foreground">
-              Gestiona los métodos de pago disponibles para los clientes
+            <h2 className="text-xl font-bold sm:text-2xl">Métodos de Pago</h2>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Gestiona los métodos de pago disponibles
             </p>
           </div>
-          <Button onClick={handleCreateClick}>
+          <Button onClick={handleCreateClick} className="w-full sm:w-auto">
             <Plus className="w-4 h-4 mr-2" />
             Nuevo Método
           </Button>
@@ -163,7 +163,7 @@ export default function PaymentMethodsPage() {
 
         {/* Payment Methods List */}
         {isLoading ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {[1, 2, 3].map((i) => (
               <Skeleton key={i} className="h-48 w-full" />
             ))}
@@ -183,7 +183,7 @@ export default function PaymentMethodsPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {methods.map((method) => (
               <Card key={method.id}>
                 <CardHeader>

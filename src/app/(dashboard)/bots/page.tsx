@@ -180,40 +180,40 @@ export default function BotsPage() {
   return (
     <>
       <Header title="Bots" />
-      <div className="flex flex-1 flex-col gap-4 p-4">
+      <div className="flex flex-1 flex-col gap-3 p-3 sm:gap-4 sm:p-4 lg:p-6">
         {/* Stats */}
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card className="p-4">
-            <div className="text-sm text-muted-foreground">Total</div>
-            <div className="text-2xl font-bold">{stats.total}</div>
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+          <Card className="p-3 sm:p-4">
+            <div className="text-xs text-muted-foreground sm:text-sm">Total</div>
+            <div className="text-xl font-bold sm:text-2xl">{stats.total}</div>
           </Card>
-          <Card className="p-4">
-            <div className="text-sm text-muted-foreground">Online</div>
-            <div className="text-2xl font-bold text-green-500">{stats.online}</div>
+          <Card className="p-3 sm:p-4">
+            <div className="text-xs text-muted-foreground sm:text-sm">Online</div>
+            <div className="text-xl font-bold text-green-500 sm:text-2xl">{stats.online}</div>
           </Card>
-          <Card className="p-4">
-            <div className="text-sm text-muted-foreground">Offline</div>
-            <div className="text-2xl font-bold text-gray-500">{stats.offline}</div>
+          <Card className="p-3 sm:p-4">
+            <div className="text-xs text-muted-foreground sm:text-sm">Offline</div>
+            <div className="text-xl font-bold text-gray-500 sm:text-2xl">{stats.offline}</div>
           </Card>
-          <Card className="p-4">
-            <div className="text-sm text-muted-foreground">Error</div>
-            <div className="text-2xl font-bold text-red-500">{stats.error}</div>
+          <Card className="p-3 sm:p-4">
+            <div className="text-xs text-muted-foreground sm:text-sm">Error</div>
+            <div className="text-xl font-bold text-red-500 sm:text-2xl">{stats.error}</div>
           </Card>
         </div>
 
         {/* Actions Bar */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h2 className="text-xl font-semibold">Gestión de Bots</h2>
-            <p className="text-sm text-muted-foreground">
+        <div className="flex gap-2 sm:gap-3 items-center justify-between">
+          <div className="min-w-0">
+            <h2 className="text-base font-semibold sm:text-lg truncate">Gestión de Bots</h2>
+            <p className="text-[10px] text-muted-foreground sm:text-xs truncate">
               Administra tus bots de Epic Games
             </p>
           </div>
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Agregar Bot
+              <Button size="sm" className="h-8 w-8 p-0 shrink-0 sm:w-auto sm:px-3">
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline ml-2">Agregar Bot</span>
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[500px]">
@@ -326,80 +326,141 @@ export default function BotsPage() {
           </Dialog>
         </div>
 
-        {/* Bots Table */}
-        <Card>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nombre</TableHead>
-                <TableHead>Epic Account ID</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead>V-Bucks</TableHead>
-                <TableHead>Gifts Disponibles</TableHead>
-                <TableHead>Gifts Usados Hoy</TableHead>
-                <TableHead>Última Actividad</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                Array.from({ length: 3 }).map((_, i) => (
-                  <TableRow key={i}>
-                    <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-48" /></TableCell>
-                    <TableCell><Skeleton className="h-5 w-16" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-8" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-8" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                  </TableRow>
-                ))
-              ) : bots && bots.length > 0 ? (
-                bots.map((bot) => (
-                  <TableRow key={bot.id} className="cursor-pointer hover:bg-muted/50" onClick={() => router.push(`/bots/${bot.id}`)}>
-                    <TableCell className="font-medium text-primary">{bot.displayName}</TableCell>
-                    <TableCell className="font-mono text-xs">{bot.epicAccountId || '-'}</TableCell>
-                    <TableCell>
-                      <Badge variant={STATUS_BADGE_VARIANT[bot.status]}>
-                        {bot.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <span className="font-medium text-purple-600">
-                        {bot.vBucks?.toLocaleString() || 0}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <span className={STATUS_COLOR[bot.status]}>
-                        {bot.giftsAvailable || 0}
-                      </span>
-                    </TableCell>
-                    <TableCell>{bot.giftsToday || 0}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {bot.lastHeartbeat
-                        ? new Date(bot.lastHeartbeat).toLocaleString()
-                        : 'Nunca'}
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
+        {/* Mobile Cards View */}
+        <div className="md:hidden space-y-3">
+          {isLoading ? (
+            Array.from({ length: 3 }).map((_, i) => (
+              <Card key={i} className="p-3">
+                <Skeleton className="h-20 w-full" />
+              </Card>
+            ))
+          ) : bots && bots.length > 0 ? (
+            bots.map((bot) => (
+              <Card
+                key={bot.id}
+                className="p-3 cursor-pointer hover:bg-muted/50 transition-colors"
+                onClick={() => router.push(`/bots/${bot.id}`)}
+              >
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div className="min-w-0">
+                    <h3 className="font-medium text-sm text-primary truncate">{bot.displayName}</h3>
+                    <p className="text-[10px] text-muted-foreground font-mono truncate">
+                      {bot.epicAccountId || 'Sin ID'}
+                    </p>
+                  </div>
+                  <Badge variant={STATUS_BADGE_VARIANT[bot.status]} className="text-[10px] shrink-0">
+                    {bot.status}
+                  </Badge>
+                </div>
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div className="bg-muted/50 rounded p-1.5">
+                    <p className="text-[10px] text-muted-foreground">V-Bucks</p>
+                    <p className="text-sm font-semibold text-purple-600">{bot.vBucks?.toLocaleString() || 0}</p>
+                  </div>
+                  <div className="bg-muted/50 rounded p-1.5">
+                    <p className="text-[10px] text-muted-foreground">Disp.</p>
+                    <p className={`text-sm font-semibold ${STATUS_COLOR[bot.status]}`}>{bot.giftsAvailable || 0}</p>
+                  </div>
+                  <div className="bg-muted/50 rounded p-1.5">
+                    <p className="text-[10px] text-muted-foreground">Hoy</p>
+                    <p className="text-sm font-semibold">{bot.giftsToday || 0}</p>
+                  </div>
+                </div>
+              </Card>
+            ))
+          ) : (
+            <Card className="p-6">
+              <div className="flex flex-col items-center gap-2">
+                <p className="text-muted-foreground text-sm">No hay bots configurados</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsCreateDialogOpen(true)}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Agregar tu primer bot
+                </Button>
+              </div>
+            </Card>
+          )}
+        </div>
+
+        {/* Desktop Table View */}
+        <Card className="hidden md:block overflow-hidden">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8">
-                    <div className="flex flex-col items-center gap-2">
-                      <p className="text-muted-foreground">No hay bots configurados</p>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setIsCreateDialogOpen(true)}
-                      >
-                        <Plus className="mr-2 h-4 w-4" />
-                        Agregar tu primer bot
-                      </Button>
-                    </div>
-                  </TableCell>
+                  <TableHead className="min-w-[120px]">Nombre</TableHead>
+                  <TableHead className="hidden lg:table-cell min-w-[180px]">Epic Account ID</TableHead>
+                  <TableHead className="min-w-[80px]">Estado</TableHead>
+                  <TableHead className="min-w-[80px]">V-Bucks</TableHead>
+                  <TableHead className="min-w-[80px]">Gifts Disp.</TableHead>
+                  <TableHead className="min-w-[80px]">Usados Hoy</TableHead>
+                  <TableHead className="hidden lg:table-cell min-w-[140px]">Última Actividad</TableHead>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  Array.from({ length: 3 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-48" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-16" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-8" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-8" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                    </TableRow>
+                  ))
+                ) : bots && bots.length > 0 ? (
+                  bots.map((bot) => (
+                    <TableRow key={bot.id} className="cursor-pointer hover:bg-muted/50" onClick={() => router.push(`/bots/${bot.id}`)}>
+                      <TableCell className="font-medium text-primary">{bot.displayName}</TableCell>
+                      <TableCell className="hidden lg:table-cell font-mono text-xs">{bot.epicAccountId || '-'}</TableCell>
+                      <TableCell>
+                        <Badge variant={STATUS_BADGE_VARIANT[bot.status]}>
+                          {bot.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <span className="font-medium text-purple-600">
+                          {bot.vBucks?.toLocaleString() || 0}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <span className={STATUS_COLOR[bot.status]}>
+                          {bot.giftsAvailable || 0}
+                        </span>
+                      </TableCell>
+                      <TableCell>{bot.giftsToday || 0}</TableCell>
+                      <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">
+                        {bot.lastHeartbeat
+                          ? new Date(bot.lastHeartbeat).toLocaleString()
+                          : 'Nunca'}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8">
+                      <div className="flex flex-col items-center gap-2">
+                        <p className="text-muted-foreground">No hay bots configurados</p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setIsCreateDialogOpen(true)}
+                        >
+                          <Plus className="mr-2 h-4 w-4" />
+                          Agregar tu primer bot
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </Card>
       </div>
     </>

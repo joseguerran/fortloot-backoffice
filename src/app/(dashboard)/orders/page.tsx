@@ -99,34 +99,34 @@ export default function OrdersPage() {
   return (
     <>
       <Header title="Orders" />
-      <div className="flex flex-1 flex-col gap-4 p-4">
+      <div className="flex flex-1 flex-col gap-3 p-3 sm:gap-4 sm:p-4 lg:p-6">
         {/* Stats */}
-        <div className="grid gap-4 md:grid-cols-5">
-          <Card className="p-4">
-            <div className="text-sm text-muted-foreground">Total</div>
-            <div className="text-2xl font-bold">{stats.total}</div>
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-3 lg:grid-cols-5">
+          <Card className="p-3 sm:p-4">
+            <div className="text-xs text-muted-foreground sm:text-sm">Total</div>
+            <div className="text-xl font-bold sm:text-2xl">{stats.total}</div>
           </Card>
-          <Card className="p-4">
-            <div className="text-sm text-muted-foreground">Pending</div>
-            <div className="text-2xl font-bold text-yellow-500">{stats.pending}</div>
+          <Card className="p-3 sm:p-4">
+            <div className="text-xs text-muted-foreground sm:text-sm">Pending</div>
+            <div className="text-xl font-bold text-yellow-500 sm:text-2xl">{stats.pending}</div>
           </Card>
-          <Card className="p-4">
-            <div className="text-sm text-muted-foreground">Processing</div>
-            <div className="text-2xl font-bold text-blue-500">{stats.processing}</div>
+          <Card className="p-3 sm:p-4">
+            <div className="text-xs text-muted-foreground sm:text-sm">Processing</div>
+            <div className="text-xl font-bold text-blue-500 sm:text-2xl">{stats.processing}</div>
           </Card>
-          <Card className="p-4">
-            <div className="text-sm text-muted-foreground">Completed</div>
-            <div className="text-2xl font-bold text-green-500">{stats.completed}</div>
+          <Card className="p-3 sm:p-4">
+            <div className="text-xs text-muted-foreground sm:text-sm">Completed</div>
+            <div className="text-xl font-bold text-green-500 sm:text-2xl">{stats.completed}</div>
           </Card>
-          <Card className="p-4">
-            <div className="text-sm text-muted-foreground">Failed</div>
-            <div className="text-2xl font-bold text-red-500">{stats.failed}</div>
+          <Card className="p-3 sm:p-4 col-span-2 sm:col-span-1">
+            <div className="text-xs text-muted-foreground sm:text-sm">Failed</div>
+            <div className="text-xl font-bold text-red-500 sm:text-2xl">{stats.failed}</div>
           </Card>
         </div>
 
         {/* Filters */}
-        <Card className="p-4">
-          <div className="flex gap-4">
+        <Card className="p-3 sm:p-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
             <div className="flex-1">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger>
@@ -159,18 +159,19 @@ export default function OrdersPage() {
         </Card>
 
         {/* Orders Table */}
-        <Card>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Customer</TableHead>
-                <TableHead>Product</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Priority</TableHead>
-                <TableHead>Price</TableHead>
-                <TableHead>Created</TableHead>
-              </TableRow>
-            </TableHeader>
+        <Card className="overflow-hidden">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="min-w-[140px]">Customer</TableHead>
+                  <TableHead className="hidden sm:table-cell min-w-[120px]">Product</TableHead>
+                  <TableHead className="min-w-[100px]">Status</TableHead>
+                  <TableHead className="hidden lg:table-cell min-w-[80px]">Priority</TableHead>
+                  <TableHead className="min-w-[80px]">Price</TableHead>
+                  <TableHead className="hidden md:table-cell min-w-[100px]">Created</TableHead>
+                </TableRow>
+              </TableHeader>
             <TableBody>
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
@@ -191,29 +192,29 @@ export default function OrdersPage() {
                     onClick={() => router.push(`/orders/${order.id}`)}
                   >
                     <TableCell>
-                      <div className="font-medium">{order.customer?.displayName || 'N/A'}</div>
-                      <div className="text-xs text-muted-foreground truncate max-w-[200px]">
+                      <div className="font-medium text-sm">{order.customer?.displayName || 'N/A'}</div>
+                      <div className="text-xs text-muted-foreground truncate max-w-[140px] sm:max-w-[200px]">
                         {order.customer?.epicAccountId || 'N/A'}
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <div className="font-medium">{order.orderItems?.[0]?.productName || 'N/A'}</div>
+                    <TableCell className="hidden sm:table-cell">
+                      <div className="font-medium text-sm">{order.orderItems?.[0]?.productName || 'N/A'}</div>
                       <div className="text-xs text-muted-foreground">{order.orderItems?.[0]?.productType || 'N/A'}</div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={STATUS_BADGE_VARIANT[order.status]}>
+                      <Badge variant={STATUS_BADGE_VARIANT[order.status]} className="text-[10px] sm:text-xs whitespace-nowrap">
                         {order.status.replace(/_/g, ' ')}
                       </Badge>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden lg:table-cell">
                       <Badge variant={order.priority === 'VIP' ? 'default' : 'outline'}>
                         {order.priority}
                       </Badge>
                     </TableCell>
-                    <TableCell>
-                      ${order.finalPrice?.toFixed(2) || '0.00'} {order.currency}
+                    <TableCell className="text-sm">
+                      ${order.finalPrice?.toFixed(2) || '0.00'}
                     </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">
+                    <TableCell className="hidden md:table-cell text-muted-foreground text-sm">
                       {formatDistanceToNow(new Date(order.createdAt), { addSuffix: true })}
                     </TableCell>
                   </TableRow>
@@ -227,6 +228,7 @@ export default function OrdersPage() {
               )}
             </TableBody>
           </Table>
+          </div>
         </Card>
       </div>
     </>

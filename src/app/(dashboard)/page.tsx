@@ -81,25 +81,25 @@ export default function DashboardPage() {
   return (
     <>
       <Header title="Dashboard" />
-      <div className="flex flex-1 flex-col gap-4 p-4">
+      <div className="flex flex-1 flex-col gap-3 p-3 sm:gap-4 sm:p-4 lg:p-6">
         {/* Stats Cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           {stats.map((stat) => (
             <Card key={stat.title}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-                <stat.icon className={`h-4 w-4 ${stat.color}`} />
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 pb-2 sm:p-6 sm:pb-2">
+                <CardTitle className="text-xs font-medium sm:text-sm">{stat.title}</CardTitle>
+                <stat.icon className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${stat.color}`} />
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
                 {stat.loading ? (
                   <>
-                    <Skeleton className="h-8 w-16" />
-                    <Skeleton className="mt-1 h-3 w-32" />
+                    <Skeleton className="h-6 w-12 sm:h-8 sm:w-16" />
+                    <Skeleton className="mt-1 h-3 w-20 sm:w-32" />
                   </>
                 ) : (
                   <>
-                    <div className="text-2xl font-bold">{stat.value}</div>
-                    <p className="text-xs text-muted-foreground">{stat.description}</p>
+                    <div className="text-xl font-bold sm:text-2xl">{stat.value}</div>
+                    <p className="text-[10px] text-muted-foreground sm:text-xs truncate">{stat.description}</p>
                   </>
                 )}
               </CardContent>
@@ -141,24 +141,20 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 rounded-lg border">
-                <div>
+              <a href="/bots" className="flex items-center justify-between p-3 rounded-lg border border-white/5 hover:bg-white/5 hover:border-primary/30 transition-colors">
+                <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium">Gestionar Bots</p>
-                  <p className="text-xs text-muted-foreground">Ver, iniciar y detener bots</p>
+                  <p className="text-xs text-muted-foreground truncate">Ver, iniciar y detener bots</p>
                 </div>
-                <a href="/bots" className="text-sm text-primary hover:underline">
-                  Ir a Bots →
-                </a>
-              </div>
-              <div className="flex items-center justify-between p-3 rounded-lg border">
-                <div>
+                <span className="text-sm text-primary ml-2 shrink-0">→</span>
+              </a>
+              <a href="/orders" className="flex items-center justify-between p-3 rounded-lg border border-white/5 hover:bg-white/5 hover:border-primary/30 transition-colors">
+                <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium">Ver Órdenes</p>
-                  <p className="text-xs text-muted-foreground">Monitorear estado de órdenes</p>
+                  <p className="text-xs text-muted-foreground truncate">Monitorear estado de órdenes</p>
                 </div>
-                <a href="/orders" className="text-sm text-primary hover:underline">
-                  Ir a Órdenes →
-                </a>
-              </div>
+                <span className="text-sm text-primary ml-2 shrink-0">→</span>
+              </a>
             </div>
           </CardContent>
         </Card>
