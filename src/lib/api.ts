@@ -606,5 +606,68 @@ export const logsApi = {
   },
 };
 
+// ----- Users -----
+export interface User {
+  id: string;
+  username: string;
+  email: string | null;
+  role: 'SUPER_ADMIN' | 'ADMIN' | 'OPERATOR' | 'VIEWER';
+  isActive: boolean;
+  phoneNumber: string | null;
+  lastLogin: string | null;
+  loginCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface InviteUserRequest {
+  username: string;
+  email?: string;
+  role: 'ADMIN' | 'OPERATOR' | 'VIEWER';
+  phoneNumber: string;
+}
+
+export const usersApi = {
+  getAll: async (): Promise<User[]> => {
+    const response = await apiClient.get('/users');
+    return handleResponse<User[]>(response);
+  },
+
+  getById: async (id: string): Promise<User> => {
+    const response = await apiClient.get(`/users/${id}`);
+    return handleResponse<User>(response);
+  },
+
+  invite: async (data: InviteUserRequest): Promise<{ user: User; invitationToken: string }> => {
+    const response = await apiClient.post('/users/invite', data);
+    return handleResponse<{ user: User; invitationToken: string }>(response);
+  },
+
+  update: async (id: string, data: Partial<User>): Promise<User> => {
+    const response = await apiClient.put(`/users/${id}`, data);
+    return handleResponse<User>(response);
+  },
+
+  delete: async (id: string): Promise<void> => {
+    const response = await apiClient.delete(`/users/${id}`);
+    return handleResponse<void>(response);
+  },
+
+  resetPassword: async (id: string): Promise<{ message: string }> => {
+    const response = await apiClient.post(`/users/${id}/reset-password`);
+    return handleResponse<{ message: string }>(response);
+  },
+
+  regenerateApiKey: async (id: string): Promise<{ apiKey: string }> => {
+    const response = await apiClient.post(`/users/${id}/regenerate-key`);
+    return handleResponse<{ apiKey: string }>(response);
+  },
+
+  resendInvitation: async (id: string): Promise<{ invitationToken: string; inviteUrl: string }> => {
+    const response = await apiClient.post(`/users/${id}/resend-invitation`);
+    return handleResponse<{ invitationToken: string; inviteUrl: string }>(response);
+  },
+};
+
 // Export default api client for custom requests
 export default apiClient;
