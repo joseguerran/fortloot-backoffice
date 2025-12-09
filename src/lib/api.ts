@@ -355,8 +355,76 @@ export interface PaymentMethod {
   instructions?: string;
   accountInfo?: any;
   metadata?: any;
+  configs?: PaymentMethodConfig[];
   createdAt: string;
   updatedAt: string;
+}
+
+// ----- Payment Method Config Types -----
+export type PaymentMethodConfigType = 'CURRENCY_CONVERSION' | 'FEE' | 'COUNTRY_RESTRICTION' | 'AMOUNT_LIMIT';
+
+export interface PaymentMethodConfig {
+  id: string;
+  paymentMethodId: string;
+  type: PaymentMethodConfigType;
+  config: CurrencyConversionConfig | FeeConfig | CountryRestrictionConfig | AmountLimitConfig;
+  enabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CurrencyConversionConfig {
+  targetCurrency: string;
+  rateProvider: 'binance_p2p' | 'manual' | string;
+  bankFilter?: string;
+  markup: number;
+  cacheTTLMin: number;
+}
+
+export interface FeeConfig {
+  feeType: 'PERCENTAGE' | 'FIXED' | 'COMPOUND';
+  feeValue: number; // Porcentaje si es PERCENTAGE o COMPOUND
+  fixedFee?: number; // Monto fijo adicional (usado en COMPOUND y FIXED)
+  description?: string; // Descripción que ve el cliente
+}
+
+export interface CountryRestrictionConfig {
+  countries: string[];
+  mode: 'whitelist' | 'blacklist';
+}
+
+export interface AmountLimitConfig {
+  minAmount?: number;
+  maxAmount?: number;
+}
+
+// ----- Exchange Rate Types -----
+export interface ExchangeRateInfo {
+  currentRate: number | null;
+  rawRate: number | null;
+  source: string | null;
+  manualRate: number | null;
+  manualSetBy: string | null;
+  manualSetAt: string | null;
+  fetchedAt: string | null;
+  expiresAt: string | null;
+  isExpired: boolean;
+  isManual: boolean;
+}
+
+export interface ExchangeRateCache {
+  id: string;
+  currency: string;
+  rate: number;
+  rawRate: number | null;
+  source: string;
+  manualRate: number | null;
+  manualSetBy: string | null;
+  manualSetAt: string | null;
+  fetchedAt: string;
+  expiresAt: string;
+  isExpired: boolean;
+  isManual: boolean;
 }
 
 export const paymentMethodsApi = {
@@ -398,6 +466,129 @@ export const paymentMethodsApi = {
 
   reorder: async (items: { id: string; displayOrder: number }[]): Promise<void> => {
     const response = await apiClient.post('/payment-methods/reorder', { items });
+    return handleResponse<void>(response);
+  },
+
+  // Get payment method with configs
+  getWithConfigs: async (id: string): Promise<PaymentMethod> => {
+    const response = await apiClient.get(`/payment-methods/${id}/with-configs`);
+    return handleResponse<PaymentMethod>(response);
+  },
+
+  // Get configs for a payment method
+  getConfigs: async (paymentMethodId: string): Promise<PaymentMethodConfig[]> => {
+    const response = await apiClient.get(`/payment-methods/${paymentMethodId}/configs`);
+    return handleResponse<PaymentMethodConfig[]>(response);
+  },
+
+  // Get specific config by type
+  getConfigByType: async (paymentMethodId: string, type: PaymentMethodConfigType): Promise<PaymentMethodConfig> => {
+    const response = await apiClient.get(`/payment-methods/${paymentMethodId}/configs/${type}`);
+    return handleResponse<PaymentMethodConfig>(response);
+  },
+
+  // Create or update config
+  upsertConfig: async (
+    paymentMethodId: string,
+    type: PaymentMethodConfigType,
+    config: CurrencyConversionConfig | FeeConfig | CountryRestrictionConfig | AmountLimitConfig,
+    enabled: boolean = true
+  ): Promise<PaymentMethodConfig> => {
+    const response = await apiClient.put(`/payment-methods/${paymentMethodId}/configs/${type}`, {
+      config,
+      enabled,
+    });
+    return handleResponse<PaymentMethodConfig>(response);
+  },
+
+  // Delete config
+  deleteConfig: async (paymentMethodId: string, type: PaymentMethodConfigType): Promise<void> => {
+    const response = await apiClient.delete(`/payment-methods/${paymentMethodId}/configs/${type}`);
+    return handleResponse<void>(response);
+  },
+
+  // Toggle config enabled/disabled
+  toggleConfig: async (paymentMethodId: string, type: PaymentMethodConfigType, enabled: boolean): Promise<PaymentMethodConfig> => {
+    const response = await apiClient.patch(`/payment-methods/${paymentMethodId}/configs/${type}/toggle`, { enabled });
+    return handleResponse<PaymentMethodConfig>(response);
+  },
+};
+
+// ----- Exchange Rates -----
+export const exchangeRatesApi = {
+  // Get current rate for a currency (public)
+  getRate: async (currency: string): Promise<{ currency: string; rate: number; source: string; validUntil: string; isManual: boolean }> => {
+    const response = await apiClient.get(`/exchange-rates/${currency}`);
+    return handleResponse<{ currency: string; rate: number; source: string; validUntil: string; isManual: boolean }>(response);
+  },
+
+  // List all cached rates (admin)
+  listRates: async (): Promise<ExchangeRateCache[]> => {
+    const response = await apiClient.get('/exchange-rates');
+    return handleResponse<ExchangeRateCache[]>(response);
+  },
+
+  // Get detailed rate info (admin)
+  getRateInfo: async (currency: string): Promise<ExchangeRateInfo> => {
+    const response = await apiClient.get(`/exchange-rates/${currency}/info`);
+    return handleResponse<ExchangeRateInfo>(response);
+  },
+
+  // Force refresh rate from provider (admin)
+  fetchRate: async (currency: string): Promise<{
+    currency: string;
+    rate: number;
+    rawRate: number;
+    source: string;
+    fetchedAt: string;
+    expiresAt: string;
+  }> => {
+    const response = await apiClient.post(`/exchange-rates/${currency}/fetch`);
+    return handleResponse<{
+      currency: string;
+      rate: number;
+      rawRate: number;
+      source: string;
+      fetchedAt: string;
+      expiresAt: string;
+    }>(response);
+  },
+
+  // Test Binance connection (admin)
+  testConnection: async (currency: string, bankFilter?: string): Promise<boolean> => {
+    try {
+      const response = await apiClient.post(`/exchange-rates/${currency}/test`, { bankFilter });
+      return response.data.success;
+    } catch {
+      return false;
+    }
+  },
+
+  // Invalidate cache (admin)
+  invalidateCache: async (currency: string): Promise<void> => {
+    const response = await apiClient.delete(`/exchange-rates/${currency}/cache`);
+    return handleResponse<void>(response);
+  },
+
+  // Set manual rate (admin)
+  setManualRate: async (currency: string, rate: number): Promise<{
+    currency: string;
+    manualRate: number;
+    manualSetBy: string;
+    manualSetAt: string;
+  }> => {
+    const response = await apiClient.put(`/exchange-rates/${currency}/manual`, { rate });
+    return handleResponse<{
+      currency: string;
+      manualRate: number;
+      manualSetBy: string;
+      manualSetAt: string;
+    }>(response);
+  },
+
+  // Clear manual rate (admin)
+  clearManualRate: async (currency: string): Promise<void> => {
+    const response = await apiClient.delete(`/exchange-rates/${currency}/manual`);
     return handleResponse<void>(response);
   },
 };

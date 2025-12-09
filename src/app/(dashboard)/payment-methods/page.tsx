@@ -13,11 +13,13 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Switch } from '@/components/ui/switch';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { CreditCard, Plus, Edit, Trash2, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { CreditCard, Plus, Edit, Trash2, Eye, EyeOff, AlertCircle, Settings } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
 export default function PaymentMethodsPage() {
   const queryClient = useQueryClient();
+  const router = useRouter();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
@@ -235,6 +237,14 @@ export default function PaymentMethodsPage() {
                       >
                         <Edit className="w-4 h-4 mr-1" />
                         Editar
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => router.push(`/payment-methods/${method.id}/config`)}
+                        title="Configurar"
+                      >
+                        <Settings className="w-4 h-4" />
                       </Button>
                       <Button
                         variant="outline"
