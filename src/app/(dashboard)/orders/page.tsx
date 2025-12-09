@@ -165,7 +165,6 @@ export default function OrdersPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="min-w-[140px]">Customer</TableHead>
-                  <TableHead className="hidden sm:table-cell min-w-[120px]">Product</TableHead>
                   <TableHead className="min-w-[100px]">Status</TableHead>
                   <TableHead className="hidden lg:table-cell min-w-[80px]">Priority</TableHead>
                   <TableHead className="min-w-[80px]">Price</TableHead>
@@ -176,7 +175,6 @@ export default function OrdersPage() {
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <TableRow key={i}>
-                    <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-20" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-16" /></TableCell>
@@ -196,10 +194,6 @@ export default function OrdersPage() {
                       <div className="text-xs text-muted-foreground truncate max-w-[140px] sm:max-w-[200px]">
                         {order.customer?.epicAccountId || 'N/A'}
                       </div>
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell">
-                      <div className="font-medium text-sm">{order.orderItems?.[0]?.productName || 'N/A'}</div>
-                      <div className="text-xs text-muted-foreground">{order.orderItems?.[0]?.productType || 'N/A'}</div>
                     </TableCell>
                     <TableCell>
                       <Badge variant={STATUS_BADGE_VARIANT[order.status]} className="text-[10px] sm:text-xs whitespace-nowrap">
@@ -221,7 +215,7 @@ export default function OrdersPage() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground">
+                  <TableCell colSpan={5} className="text-center text-muted-foreground">
                     No orders found with the selected filters.
                   </TableCell>
                 </TableRow>
