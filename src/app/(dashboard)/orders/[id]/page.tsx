@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ordersApi } from '@/lib/api';
@@ -8,6 +9,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -80,6 +82,7 @@ export default function OrderDetailPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const orderId = params.id as string;
+  const [adminNote, setAdminNote] = useState('');
 
   const { data: order, isLoading, error } = useQuery({
     queryKey: ['order', orderId],
@@ -159,6 +162,19 @@ export default function OrderDetailPage() {
     },
   });
 
+  const completeManuallyMutation = useMutation({
+    mutationFn: (note?: string) => ordersApi.completeManually(orderId, note),
+    onSuccess: () => {
+      toast.success('✅ Orden marcada como completada manualmente');
+      setAdminNote('');
+      queryClient.invalidateQueries({ queryKey: ['order', orderId] });
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Error al completar orden manualmente');
+    },
+  });
+
   if (isLoading) {
     return (
       <>
@@ -205,6 +221,8 @@ export default function OrderDetailPage() {
   const canMarkBotFixed = order.status === 'WAITING_BOT_FIX';
   // Can continue order if it's stuck in an intermediate state
   const canContinue = ['PAYMENT_VERIFIED', 'WAITING_FRIENDSHIP', 'WAITING_PERIOD', 'QUEUED', 'FAILED', 'WAITING_VBUCKS', 'WAITING_BOT_FIX'].includes(order.status);
+  // Can complete manually for orders requiring manual intervention
+  const canCompleteManually = ['FAILED', 'WAITING_VBUCKS', 'WAITING_BOT_FIX', 'WAITING_BOT'].includes(order.status);
 
   return (
     <>
@@ -331,6 +349,43 @@ export default function OrderDetailPage() {
                       className="bg-blue-600 text-white hover:bg-blue-700"
                     >
                       {continueOrderMutation.isPending ? 'Procesando...' : 'Si, continuar'}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+            {canCompleteManually && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" className="border-green-600 text-green-600 hover:bg-green-600/10">
+                    <CheckCircle className="mr-2 h-4 w-4" />
+                    Completar Manualmente
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>¿Completar orden manualmente?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Esto marcará la orden como completada y enviará un email de confirmación al cliente. Usa esto solo si ya enviaste el regalo manualmente fuera del sistema.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <div className="my-4">
+                    <label className="text-sm text-muted-foreground">Nota (opcional)</label>
+                    <Input
+                      placeholder="Ej: Regalo enviado desde cuenta X"
+                      value={adminNote}
+                      onChange={(e) => setAdminNote(e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel onClick={() => setAdminNote('')}>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => completeManuallyMutation.mutate(adminNote || undefined)}
+                      disabled={completeManuallyMutation.isPending}
+                      className="bg-green-600 text-white hover:bg-green-700"
+                    >
+                      {completeManuallyMutation.isPending ? 'Procesando...' : 'Confirmar Completada'}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>

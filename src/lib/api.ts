@@ -190,6 +190,11 @@ export const ordersApi = {
     const response = await apiClient.post(`/orders/${id}/continue`);
     return handleResponse<void>(response);
   },
+
+  completeManually: async (id: string, adminNote?: string): Promise<void> => {
+    const response = await apiClient.post(`/orders/${id}/complete-manually`, { adminNote });
+    return handleResponse<void>(response);
+  },
 };
 
 // ----- Analytics -----
