@@ -4,10 +4,11 @@ export const API_VERSION = '/api';
 
 // Polling intervals (in milliseconds)
 export const POLLING_INTERVALS = {
-  DASHBOARD: 5000,  // 5 seconds
-  BOTS: 5000,       // 5 seconds
-  ORDERS: 5000,     // 5 seconds
-  ANALYTICS: 10000, // 10 seconds
+  DASHBOARD: 30000,   // 30 seconds
+  BOTS: 30000,        // 30 seconds
+  ORDERS: 30000,      // 30 seconds
+  ORDER_DETAIL: 30000, // 30 seconds
+  ANALYTICS: 60000,   // 60 seconds
 };
 
 // Auth
