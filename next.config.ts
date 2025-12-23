@@ -5,6 +5,7 @@ const backend = process.env.BACKEND_INTERNAL_URL || "http://backend:3001";
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   output: "standalone",
+  poweredByHeader: false, // Oculta "X-Powered-By: Next.js"
   typescript: {
     ignoreBuildErrors: true,
   },
